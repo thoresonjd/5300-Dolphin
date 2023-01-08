@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include "db_cxx.h"
 
@@ -31,9 +32,20 @@ int main(int argc, char** argv) {
   db.set_re_len(BLOCK_SZ);
   db.open(NULL, SQL_5300.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
 
-  // TODO: Write block to db
+  // Write block to db
+  char block[BLOCK_SZ];
+  Dbt data(block, sizeof(block));
+  int block_number;
+  Dbt key(&block_number, sizeof(block_number));
+  block_number = 1;
+  strcpy(block, "Hello, DB!");
+  db.put(NULL, &key, &data, 0);
 
-  // TODO: Read block from db
+  // Read block from db
+  Dbt rData;
+  db.get(NULL, &key, &rData, 0);
+  std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
+	std::cout << " (expect 'hello!')" << std::endl;
 
   return EXIT_SUCCESS;
 }
