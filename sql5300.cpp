@@ -2,17 +2,24 @@
 #include <cstring>
 #include <iostream>
 #include "db_cxx.h"
+#include "SQLParser.h"
+#include "sqlhelper.h"
 
 const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
 const u_int32_t DB_FLAGS = DB_CREATE;
 const std::string SQL_5300 = "sql5300.db";
 const unsigned int BLOCK_SZ = 4096;
 
+void runSQLShell();
+void handleSQLStatements(hsql::SQLParserResult *);
+void handleSQLQuery(std::string);
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
     return EXIT_FAILURE;
   }
+
   // Establish database environment
   const std::string ENV_DIR = argv[1];
   DbEnv env(0U);
@@ -40,16 +47,40 @@ int main(int argc, char** argv) {
   Dbt rData;
   db.get(NULL, &key, &rData, 0);
   std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
-	std::cout << " (expect 'hello!')" << std::endl;
+	std::cout << " (expect 'Hello, DB!')" << std::endl;
 
   // SQL shell
   std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
-  
+  runSQLShell();
+
+  return EXIT_SUCCESS;
+}
+
+void runSQLShell() {
   std::string query = "";
   while (query != "quit") {
     std::cout << "SQL> ";
-    std::cin >> query;
+    getline(std::cin, query);
+    handleSQLQuery(query);
   }
+}
 
-  return EXIT_SUCCESS;
+void handleSQLQuery(std::string query) {
+  if (query == "quit") return;
+  hsql::SQLParserResult* parsedQuery = hsql::SQLParser::parseSQLString(query);
+  if (!parsedQuery->isValid()) {
+    std::cout << "INVALID SQL: " << query << std::endl;
+    return;
+  } else {
+    handleSQLStatements(parsedQuery);
+  }
+}
+
+void handleSQLStatements(hsql::SQLParserResult* parsedQuery) {
+  for (int i = 0; i < parsedQuery->size(); i++) {
+    const hsql::SQLStatement* statement = parsedQuery->getStatement(i);
+    hsql::printStatementInfo(statement);
+    hsql::StatementType statementType = statement->type();
+    std::cout << statementType << std::endl;
+  }
 }
