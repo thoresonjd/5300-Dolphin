@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <iostream>
 #include "db_cxx.h"
 #include "SQLParser.h"
@@ -7,12 +8,26 @@
 
 const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
 const u_int32_t DB_FLAGS = DB_CREATE;
-const std::string SQL_5300 = "sql5300.db";
 const unsigned int BLOCK_SZ = 4096;
+const std::string DB_NAME = "sql5300.db";
+const std::string QUIT = "quit";
 
+/**
+ * @brief Runs the SQL shell loop and listens for queries
+ */
 void runSQLShell();
-void handleSQLStatements(hsql::SQLParserResult *);
+
+/**
+ * @brief Processes a single SQL query
+ * @param query A SQL query (or queries) to process
+ */
 void handleSQLQuery(std::string);
+
+/**
+ * @brief Processes SQL statements within a parsed query
+ * @param parsedQuery A parsed SQL query
+ */
+void handleSQLStatements(hsql::SQLParserResult*);
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -32,7 +47,7 @@ int main(int argc, char** argv) {
   db.set_message_stream(env.get_message_stream());
   db.set_error_stream(env.get_error_stream());
   db.set_re_len(BLOCK_SZ);
-  db.open(NULL, SQL_5300.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
+  db.open(NULL, DB_NAME.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
 
   // Write block to db
   char block[BLOCK_SZ];
@@ -58,27 +73,25 @@ int main(int argc, char** argv) {
 
 void runSQLShell() {
   std::string query = "";
-  while (query != "quit") {
+  while (query != QUIT) {
     std::cout << "SQL> ";
-    getline(std::cin, query);
+    std::getline(std::cin, query);
     handleSQLQuery(query);
   }
 }
 
 void handleSQLQuery(std::string query) {
-  if (query == "quit") return;
+  if (query == QUIT) return;
   hsql::SQLParserResult* parsedQuery = hsql::SQLParser::parseSQLString(query);
-  if (!parsedQuery->isValid()) {
+  if (!parsedQuery->isValid())
     std::cout << "INVALID SQL: " << query << std::endl;
-    return;
-  } else {
+  else
     handleSQLStatements(parsedQuery);
-  }
 }
 
 void handleSQLStatements(hsql::SQLParserResult* parsedQuery) {
   for (int i = 0; i < parsedQuery->size(); i++) {
-    const hsql::SQLStatement* statement = parsedQuery->getStatement(i);
+    const hsql::SQLStatement* const statement = parsedQuery->getStatement(i);
     hsql::printStatementInfo(statement);
     hsql::StatementType statementType = statement->type();
     std::cout << statementType << std::endl;
