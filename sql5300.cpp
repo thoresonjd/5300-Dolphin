@@ -6,10 +6,6 @@
 #include "SQLParser.h"
 #include "sqlhelper.h"
 
-// using Statement = hsql::SQLStatement;
-// using Select = hsql::SelectStatement;
-// using Create = hsql::CreateStatement;
-
 const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
 const u_int32_t DB_FLAGS = DB_CREATE;
 const unsigned int BLOCK_SZ = 4096;
@@ -107,7 +103,16 @@ void handleSQLStatements(hsql::SQLParserResult* parsedQuery) {
 }
 
 void execute(const hsql::SQLStatement* statement) {
-  hsql::printStatementInfo(statement);
-  hsql::StatementType statementType = statement->type();
-  std::cout << statementType << std::endl;
+  switch (statement->type()) {
+    case hsql::StatementType::kStmtSelect:
+      // TODO: Print SELECT statement
+      break;
+    case hsql::StatementType::kStmtCreate:
+      // TODO: Print CREATE statement
+      break;
+    default:
+      hsql::printStatementInfo(statement);
+      hsql::StatementType statementType = statement->type();
+      std::cout << statementType << std::endl;
+  }
 }
