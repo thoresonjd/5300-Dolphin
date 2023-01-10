@@ -6,6 +6,10 @@
 #include "SQLParser.h"
 #include "sqlhelper.h"
 
+// using Statement = hsql::SQLStatement;
+// using Select = hsql::SelectStatement;
+// using Create = hsql::CreateStatement;
+
 const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
 const u_int32_t DB_FLAGS = DB_CREATE;
 const unsigned int BLOCK_SZ = 4096;
@@ -25,9 +29,15 @@ void handleSQLQuery(std::string);
 
 /**
  * @brief Processes SQL statements within a parsed query
- * @param parsedQuery A parsed SQL query
+ * @param parsedQuery A pointer to a parsed SQL query
  */
 void handleSQLStatements(hsql::SQLParserResult*);
+
+/**
+ * @brief Executes a provided SQL statement
+ * @param statement A pointer to a SQL statement
+ */
+void execute(const hsql::SQLStatement*);
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -82,7 +92,7 @@ void runSQLShell() {
 
 void handleSQLQuery(std::string query) {
   if (query == QUIT) return;
-  hsql::SQLParserResult* parsedQuery = hsql::SQLParser::parseSQLString(query);
+  hsql::SQLParserResult* const parsedQuery = hsql::SQLParser::parseSQLString(query);
   if (!parsedQuery->isValid())
     std::cout << "INVALID SQL: " << query << std::endl;
   else
@@ -92,8 +102,12 @@ void handleSQLQuery(std::string query) {
 void handleSQLStatements(hsql::SQLParserResult* parsedQuery) {
   for (int i = 0; i < parsedQuery->size(); i++) {
     const hsql::SQLStatement* const statement = parsedQuery->getStatement(i);
-    hsql::printStatementInfo(statement);
-    hsql::StatementType statementType = statement->type();
-    std::cout << statementType << std::endl;
+    execute(statement);
   }
+}
+
+void execute(const hsql::SQLStatement* statement) {
+  hsql::printStatementInfo(statement);
+  hsql::StatementType statementType = statement->type();
+  std::cout << statementType << std::endl;
 }
