@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
 #include <iostream>
 #include "db_cxx.h"
 #include "SQLParser.h"
@@ -34,6 +35,27 @@ void handleSQLStatements(hsql::SQLParserResult*);
  * @param statement A pointer to a SQL statement
  */
 void execute(const hsql::SQLStatement*);
+
+/**
+ * @brief Unparses a statement into a string
+ * @param statement A pointer to a SQL statement
+ * @return An unparsed SQL statement
+ */
+std::string unparse(const hsql::SQLStatement*);
+
+/**
+ * @brief Unparses a SELECT statement into a string
+ * @param statement A pointer to a SELECT statement
+ * @return An unparsed SELECT statement
+ */
+std::string unparseSelectStatement(const hsql::SelectStatement*);
+
+/**
+ * @brief Unparses a CREATE statement into a string
+ * @param statement A pointer to a CREATE statement
+ * @return An unparsed CREATE statement
+ */
+std::string unparseCreateStatement(const hsql::CreateStatement*);
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -103,16 +125,34 @@ void handleSQLStatements(hsql::SQLParserResult* parsedQuery) {
 }
 
 void execute(const hsql::SQLStatement* statement) {
+  std::string unparsedStatement = unparse(statement);
+  std::cout << unparsedStatement << std::endl;
+}
+
+std::string unparse(const hsql::SQLStatement* statement) {
   switch (statement->type()) {
     case hsql::StatementType::kStmtSelect:
-      // TODO: Print SELECT statement
-      break;
+      return unparseSelectStatement(dynamic_cast<const hsql::SelectStatement*>(statement));
     case hsql::StatementType::kStmtCreate:
-      // TODO: Print CREATE statement
-      break;
+      return unparseCreateStatement(dynamic_cast<const hsql::CreateStatement*>(statement));
     default:
-      hsql::printStatementInfo(statement);
-      hsql::StatementType statementType = statement->type();
-      std::cout << statementType << std::endl;
+      return "Not implemented";
   }
+}
+
+// TODO: finish
+std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement) {
+  std::string unparsed = "SELECT ";
+  std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
+  std::size_t selectListSize = selectStatement->selectList->size();
+  for (size_t i = 0; i < selectListSize; i++){
+    std::cout << selectList->at(i)->type;
+  }
+  return unparsed;
+}
+
+// TODO: finish
+std::string unparseCreateStatement(const hsql::CreateStatement* selectStatement) {
+  std::string unparsed = "CREATE ";
+  return unparsed;
 }
