@@ -157,6 +157,8 @@ std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement)
     unparsed.append(expr);
     unparsed.append(i + 1 < selectListSize ? ", " : " ");
   }
+  std::string table = selectStatement->fromTable->name;
+  unparsed.append("FROM ").append(table);
   return unparsed;
 }
 
