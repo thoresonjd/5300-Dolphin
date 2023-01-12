@@ -169,8 +169,29 @@ std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement)
 }
 
 // TODO: finish
-std::string unparseCreateStatement(const hsql::CreateStatement* selectStatement) {
+std::string unparseCreateStatement(const hsql::CreateStatement* createStatement) {
+  if (createStatement->type != hsql::CreateStatement::CreateType::kTable)
+    return "unimplemented";
   std::string unparsed = "CREATE ";
+  unparsed.append("TABLE ");
+  unparsed.append(createStatement->tableName).append(" (");
+  size_t columnsLength = createStatement->columns->size();
+  for (int i = 0; i < columnsLength; i++){
+    hsql::ColumnDefinition* col = createStatement->columns->at(i);
+    unparsed.append(col->name);
+    switch (col->type) {
+      case hsql::ColumnDefinition::DataType::TEXT:
+        unparsed.append(" TEXT");
+        break;
+      case hsql::ColumnDefinition::DataType::INT:
+        unparsed.append(" INT");
+        break;
+      case hsql::ColumnDefinition::DataType::DOUBLE:
+        unparsed.append(" DOUBLE");
+        break;
+    }
+    unparsed.append(i + 1 < columnsLength ? ", " : ") ");
+  }
   return unparsed;
 }
 
