@@ -149,16 +149,22 @@ std::string unparse(const hsql::SQLStatement* statement) {
 
 // TODO: finish
 std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement) {
+  // Columns in select list
   std::string unparsed = "SELECT ";
   std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
   std::size_t selectListSize = selectStatement->selectList->size();
   for (int i = 0; i < selectListSize; i++) {
-    std::string expr = exprToString(selectList->at(i));
-    unparsed.append(expr);
+    unparsed.append(exprToString(selectList->at(i)));
     unparsed.append(i + 1 < selectListSize ? ", " : " ");
   }
+
+  // Table(s)
   std::string table = selectStatement->fromTable->name;
   unparsed.append("FROM ").append(table);
+  
+  // Where
+  if (selectStatement->whereClause)
+    unparsed.append(" WHERE ").append(exprToString(selectStatement->whereClause));
   return unparsed;
 }
 
@@ -169,13 +175,34 @@ std::string unparseCreateStatement(const hsql::CreateStatement* selectStatement)
 }
 
 std::string exprToString(hsql::Expr* const expr) {
-  hsql::ExprType* exprType = &expr->type;
-  switch (*exprType) {
+  std::string result = "";
+  switch (expr->type) {
     case hsql::ExprType::kExprStar:
-      return "*";
+      result = "*";
+      break;
+    case hsql::ExprType::kExprOperator:
+      result.append(exprToString(expr->expr)).append(" ");
+      result.push_back(expr->opChar);
+      result.append(" ");
+      if (expr->expr2)
+        result.append(exprToString(expr->expr2));
+      else if (expr->exprList)
+        for(hsql::Expr* expr : *expr->exprList)
+          result.append(exprToString(expr));
+      break;
     case hsql::ExprType::kExprColumnRef:
-      return expr->name;
-    default:
-      return "";
+    case hsql::ExprType::kExprLiteralString:
+      result = expr->name;
+      break;
+    case hsql::ExprType::kExprLiteralInt:
+      result = std::to_string(expr->ival);
+      break;
+    case hsql::ExprType::kExprLiteralFloat:
+      result = std::to_string(expr->fval);
+      break;
+    case hsql::ExprType::kExprFunctionRef:
+      result = "kExprFunctionRef unimplemented";
+      break;
   }
+  return result;
 }
