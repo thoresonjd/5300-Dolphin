@@ -132,7 +132,8 @@ void handleSQLQuery(std::string query) {
 }
 
 void handleSQLStatements(hsql::SQLParserResult* const parsedQuery) {
-  for (int i = 0; i < parsedQuery->size(); i++) {
+  std::size_t parsedQuerySize = parsedQuery->size();
+  for (std::size_t i = 0; i < parsedQuerySize; i++) {
     const hsql::SQLStatement* const statement = parsedQuery->getStatement(i);
     execute(statement);
   }
@@ -159,8 +160,8 @@ std::string unparseSelectStatement(const hsql::SelectStatement* const selectStat
   // Columns in select list
   std::string unparsed = "SELECT ";
   std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
-  std::size_t selectListSize = selectStatement->selectList->size();
-  for (int i = 0; i < selectListSize; i++) {
+  std::size_t selectListSize = selectList->size();
+  for (std::size_t i = 0; i < selectListSize; i++) {
     unparsed.append(exprToString(selectList->at(i)));
     unparsed.append(i + 1 < selectListSize ? ", " : " ");
   }
@@ -178,11 +179,10 @@ std::string unparseSelectStatement(const hsql::SelectStatement* const selectStat
 std::string unparseCreateStatement(const hsql::CreateStatement* const createStatement) {
   if (createStatement->type != hsql::CreateStatement::CreateType::kTable)
     return "unimplemented";
-  std::string unparsed = "CREATE ";
-  unparsed.append("TABLE ");
+  std::string unparsed = "CREATE TABLE ";
   unparsed.append(createStatement->tableName).append(" (");
-  size_t columnsLength = createStatement->columns->size();
-  for (int i = 0; i < columnsLength; i++){
+  std::size_t columnsLength = createStatement->columns->size();
+  for (std::size_t i = 0; i < columnsLength; i++){
     hsql::ColumnDefinition* col = createStatement->columns->at(i);
     unparsed.append(colToString(col));
     unparsed.append(i + 1 < columnsLength ? ", " : ") ");
