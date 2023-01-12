@@ -1,3 +1,9 @@
+/**
+ * @file sql5300.cpp - TODO: describe
+ * @authors Justin Thoreson & Mason Adsero
+ * @see "Seattle University, CPSC5600, Winter 2023"
+ */
+
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -58,30 +64,30 @@ std::string unparseSelectStatement(const hsql::SelectStatement* const);
 std::string unparseCreateStatement(const hsql::CreateStatement* const);
 
 /**
- * @brief
- * @param
- * @return
+ * @brief Converts an Expr type expression to a string
+ * @param expr A pointer the an expression
+ * @return The string equivalent of an expression
  */
 std::string exprToString(hsql::Expr* const);
 
 /**
- * @brief
- * @param
- * @return
+ * @brief Converts a ColumnDefinition type to a string
+ * @param col A pointer to a database column
+ * @return The string equivalent of a column
  */
 std::string colToString(hsql::ColumnDefinition* const);
 
 /**
- * @brief
- * @param
- * @return 
+ * @brief Converts a TableRef type to a string
+ * @param table A pointer to a database table
+ * @return The string equivalent of a table
  */
 std::string tableToString(hsql::TableRef*);
 
 /**
- * @brief
- * @param
- * @return
+ * @brief Converts a JoinDefinition type to a string
+ * @param table A pointer to a join definition
+ * @return The string equivalent of a join definition
  */
 std::string joinToString(hsql::JoinDefinition*);
 
@@ -169,9 +175,7 @@ std::string unparse(const hsql::SQLStatement* const statement) {
   }
 }
 
-// TODO: finish
 std::string unparseSelectStatement(const hsql::SelectStatement* const selectStatement) {
-  // Columns in select list
   std::string unparsed = "SELECT ";
   std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
   std::size_t selectListSize = selectList->size();
@@ -179,12 +183,8 @@ std::string unparseSelectStatement(const hsql::SelectStatement* const selectStat
     unparsed.append(exprToString(selectList->at(i)));
     unparsed.append(i + 1 < selectListSize ? ", " : " ");
   }
-
-  // Table(s)
   unparsed.append("FROM ");
   unparsed.append(tableToString(selectStatement->fromTable));
-
-  // Where
   if (selectStatement->whereClause)
     unparsed.append(" WHERE ").append(exprToString(selectStatement->whereClause));
   return unparsed;
