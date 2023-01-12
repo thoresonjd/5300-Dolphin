@@ -281,5 +281,17 @@ std::string tableToString(hsql::TableRef* table) {
 }
 
 std::string joinToString(hsql::JoinDefinition* join) {
-  return "";
+  std::string result = "";
+  result.append(tableToString(join->left));
+  switch (join->type) {
+    case hsql::JoinType::kJoinInner:
+      result.append(" JOIN ");
+      break;
+    case hsql::JoinType::kJoinLeft:
+      result.append(" LEFT JOIN ");
+      break;
+  }
+  result.append(tableToString(join->right));
+  result.append(" ON ").append(exprToString(join->condition));
+  return result;
 }
