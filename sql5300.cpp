@@ -57,6 +57,13 @@ std::string unparseSelectStatement(const hsql::SelectStatement*);
  */
 std::string unparseCreateStatement(const hsql::CreateStatement*);
 
+/**
+ * @brief
+ * @param
+ * @return
+ */
+std::string exprToString(hsql::Expr *const);
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
@@ -145,8 +152,10 @@ std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement)
   std::string unparsed = "SELECT ";
   std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
   std::size_t selectListSize = selectStatement->selectList->size();
-  for (size_t i = 0; i < selectListSize; i++){
-    std::cout << selectList->at(i)->type;
+  for (int i = 0; i < selectListSize; i++) {
+    std::string expr = exprToString(selectList->at(i));
+    unparsed.append(expr);
+    unparsed.append(i + 1 < selectListSize ? ", " : " ");
   }
   return unparsed;
 }
@@ -155,4 +164,16 @@ std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement)
 std::string unparseCreateStatement(const hsql::CreateStatement* selectStatement) {
   std::string unparsed = "CREATE ";
   return unparsed;
+}
+
+std::string exprToString(hsql::Expr* const expr) {
+  hsql::ExprType* exprType = &expr->type;
+  switch (*exprType) {
+    case hsql::ExprType::kExprStar:
+      return "*";
+    case hsql::ExprType::kExprColumnRef:
+      return expr->name;
+    default:
+      return "";
+  }
 }
