@@ -71,6 +71,20 @@ std::string exprToString(hsql::Expr* const);
  */
 std::string colToString(hsql::ColumnDefinition* const);
 
+/**
+ * @brief
+ * @param
+ * @return 
+ */
+std::string tableToString(hsql::TableRef*);
+
+/**
+ * @brief
+ * @param
+ * @return
+ */
+std::string joinToString(hsql::JoinDefinition*);
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
@@ -168,15 +182,7 @@ std::string unparseSelectStatement(const hsql::SelectStatement* const selectStat
 
   // Table(s)
   unparsed.append("FROM ");
-  hsql::TableRef* table = selectStatement->fromTable;
-  switch (table->type) {
-    case hsql::TableRefType::kTableName:
-      unparsed.append(table->name);
-      break;
-    case hsql::TableRefType::kTableJoin:
-      // TODO: unparse joins
-      break;
-  }
+  unparsed.append(tableToString(selectStatement->fromTable));
 
   // Where
   if (selectStatement->whereClause)
@@ -216,7 +222,11 @@ std::string exprToString(hsql::Expr* const expr) {
       break;
     case hsql::ExprType::kExprColumnRef:
     case hsql::ExprType::kExprLiteralString:
-      result = expr->name;
+      if (expr->table)
+        result.append(expr->table).append(".");
+      else if (expr->alias)
+        result.append(expr->alias).append(".");
+      result.append(expr->name);
       break;
     case hsql::ExprType::kExprLiteralInt:
       result = std::to_string(expr->ival);
@@ -246,4 +256,30 @@ std::string colToString(hsql::ColumnDefinition* const col) {
       break;
   }
   return result;
+}
+
+std::string tableToString(hsql::TableRef* table) {
+  std::string result = "";
+  switch (table->type) {
+    case hsql::TableRefType::kTableName:
+      result.append(table->name);
+      break;
+    case hsql::TableRefType::kTableJoin:
+      result.append(joinToString(table->join));
+      break;
+    case hsql::TableRefType::kTableCrossProduct:
+      std::size_t tableListSize = table->list->size();
+      for (std::size_t i = 0; i < tableListSize; i++) {
+        result.append(tableToString(table->list->at(i)));
+        result.append(i + 1 < tableListSize ? ", " : " ");
+      }
+      break;
+  }
+  if (table->alias)
+    result.append(" AS ").append(table->alias);
+  return result;
+}
+
+std::string joinToString(hsql::JoinDefinition* join) {
+  return "";
 }
