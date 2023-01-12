@@ -28,41 +28,48 @@ void handleSQLQuery(std::string);
  * @brief Processes SQL statements within a parsed query
  * @param parsedQuery A pointer to a parsed SQL query
  */
-void handleSQLStatements(hsql::SQLParserResult*);
+void handleSQLStatements(hsql::SQLParserResult* const);
 
 /**
  * @brief Executes a provided SQL statement
  * @param statement A pointer to a SQL statement
  */
-void execute(const hsql::SQLStatement*);
+void execute(const hsql::SQLStatement* const);
 
 /**
  * @brief Unparses a statement into a string
  * @param statement A pointer to a SQL statement
  * @return An unparsed SQL statement
  */
-std::string unparse(const hsql::SQLStatement*);
+std::string unparse(const hsql::SQLStatement* const);
 
 /**
  * @brief Unparses a SELECT statement into a string
  * @param statement A pointer to a SELECT statement
  * @return An unparsed SELECT statement
  */
-std::string unparseSelectStatement(const hsql::SelectStatement*);
+std::string unparseSelectStatement(const hsql::SelectStatement* const);
 
 /**
  * @brief Unparses a CREATE statement into a string
  * @param statement A pointer to a CREATE statement
  * @return An unparsed CREATE statement
  */
-std::string unparseCreateStatement(const hsql::CreateStatement*);
+std::string unparseCreateStatement(const hsql::CreateStatement* const);
 
 /**
  * @brief
  * @param
  * @return
  */
-std::string exprToString(hsql::Expr *const);
+std::string exprToString(hsql::Expr* const);
+
+/**
+ * @brief
+ * @param
+ * @return
+ */
+std::string colToString(hsql::ColumnDefinition* const);
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -124,19 +131,19 @@ void handleSQLQuery(std::string query) {
     handleSQLStatements(parsedQuery);
 }
 
-void handleSQLStatements(hsql::SQLParserResult* parsedQuery) {
+void handleSQLStatements(hsql::SQLParserResult* const parsedQuery) {
   for (int i = 0; i < parsedQuery->size(); i++) {
     const hsql::SQLStatement* const statement = parsedQuery->getStatement(i);
     execute(statement);
   }
 }
 
-void execute(const hsql::SQLStatement* statement) {
+void execute(const hsql::SQLStatement* const statement) {
   std::string unparsedStatement = unparse(statement);
   std::cout << unparsedStatement << std::endl;
 }
 
-std::string unparse(const hsql::SQLStatement* statement) {
+std::string unparse(const hsql::SQLStatement* const statement) {
   switch (statement->type()) {
     case hsql::StatementType::kStmtSelect:
       return unparseSelectStatement(dynamic_cast<const hsql::SelectStatement*>(statement));
@@ -148,7 +155,7 @@ std::string unparse(const hsql::SQLStatement* statement) {
 }
 
 // TODO: finish
-std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement) {
+std::string unparseSelectStatement(const hsql::SelectStatement* const selectStatement) {
   // Columns in select list
   std::string unparsed = "SELECT ";
   std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
@@ -168,8 +175,7 @@ std::string unparseSelectStatement(const hsql::SelectStatement* selectStatement)
   return unparsed;
 }
 
-// TODO: finish
-std::string unparseCreateStatement(const hsql::CreateStatement* createStatement) {
+std::string unparseCreateStatement(const hsql::CreateStatement* const createStatement) {
   if (createStatement->type != hsql::CreateStatement::CreateType::kTable)
     return "unimplemented";
   std::string unparsed = "CREATE ";
@@ -178,18 +184,7 @@ std::string unparseCreateStatement(const hsql::CreateStatement* createStatement)
   size_t columnsLength = createStatement->columns->size();
   for (int i = 0; i < columnsLength; i++){
     hsql::ColumnDefinition* col = createStatement->columns->at(i);
-    unparsed.append(col->name);
-    switch (col->type) {
-      case hsql::ColumnDefinition::DataType::TEXT:
-        unparsed.append(" TEXT");
-        break;
-      case hsql::ColumnDefinition::DataType::INT:
-        unparsed.append(" INT");
-        break;
-      case hsql::ColumnDefinition::DataType::DOUBLE:
-        unparsed.append(" DOUBLE");
-        break;
-    }
+    unparsed.append(colToString(col));
     unparsed.append(i + 1 < columnsLength ? ", " : ") ");
   }
   return unparsed;
@@ -223,6 +218,23 @@ std::string exprToString(hsql::Expr* const expr) {
       break;
     case hsql::ExprType::kExprFunctionRef:
       result = "kExprFunctionRef unimplemented";
+      break;
+  }
+  return result;
+}
+
+std::string colToString(hsql::ColumnDefinition* const col) {
+  std::string result = "";
+  result.append(col->name);
+  switch (col->type) {
+    case hsql::ColumnDefinition::DataType::TEXT:
+      result.append(" TEXT");
+      break;
+    case hsql::ColumnDefinition::DataType::INT:
+      result.append(" INT");
+      break;
+    case hsql::ColumnDefinition::DataType::DOUBLE:
+      result.append(" DOUBLE");
       break;
   }
   return result;
