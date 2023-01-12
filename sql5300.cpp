@@ -167,9 +167,17 @@ std::string unparseSelectStatement(const hsql::SelectStatement* const selectStat
   }
 
   // Table(s)
-  std::string table = selectStatement->fromTable->name;
-  unparsed.append("FROM ").append(table);
-  
+  unparsed.append("FROM ");
+  hsql::TableRef* table = selectStatement->fromTable;
+  switch (table->type) {
+    case hsql::TableRefType::kTableName:
+      unparsed.append(table->name);
+      break;
+    case hsql::TableRefType::kTableJoin:
+      // TODO: unparse joins
+      break;
+  }
+
   // Where
   if (selectStatement->whereClause)
     unparsed.append(" WHERE ").append(exprToString(selectStatement->whereClause));
