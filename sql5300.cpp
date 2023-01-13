@@ -19,6 +19,15 @@ const std::string DB_NAME = "sql5300.db";
 const std::string QUIT = "quit";
 
 /**
+ * @brief Established as database
+ * 
+ * Tests the establishment of, writing to, and reading from a database
+ * 
+ * @param envDir The database environment directory
+ */
+void dbConfig(const std::string envDir);
+
+/**
  * @brief Runs the SQL shell loop and listens for queries
  */
 void runSQLShell();
@@ -95,13 +104,19 @@ int main(int argc, char** argv) {
     std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
     return EXIT_FAILURE;
   }
-
-  // Establish database environment
   const std::string ENV_DIR = argv[1];
+  //dbConfig(ENV_DIR);
+  std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
+  runSQLShell();
+  return EXIT_SUCCESS;
+}
+
+void dbConfig(const std::string envDir) {
+  // Establish database environment
   DbEnv env(0U);
   env.set_message_stream(&std::cout);
   env.set_error_stream(&std::cerr);
-  env.open(ENV_DIR.c_str(), ENV_FLAGS, 0);
+  env.open(envDir.c_str(), ENV_FLAGS, 0);
 
   // Establish database
   Db db(&env, 0);
@@ -123,13 +138,7 @@ int main(int argc, char** argv) {
   Dbt rData;
   db.get(NULL, &key, &rData, 0);
   std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
-	std::cout << " (expect 'Hello, DB!')" << std::endl;
-
-  // SQL shell
-  std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
-  runSQLShell();
-
-  return EXIT_SUCCESS;
+  std::cout << " (expect 'Hello, DB!')" << std::endl;
 }
 
 void runSQLShell() {
@@ -169,7 +178,7 @@ std::string unparse(const hsql::SQLStatement* const statement) {
     case hsql::StatementType::kStmtCreate:
       return unparse(dynamic_cast<const hsql::CreateStatement*>(statement));
     default:
-      return "Not implemented";
+      return "unsupported";
   }
 }
 
@@ -232,7 +241,7 @@ std::string toString(hsql::Expr* const expr) {
       result = std::to_string(expr->fval);
       break;
     case hsql::ExprType::kExprFunctionRef:
-      result = "kExprFunctionRef unimplemented";
+      result = "kExprFunctionRef unsupported";
       break;
   }
   return result;
