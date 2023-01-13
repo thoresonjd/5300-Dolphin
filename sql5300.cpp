@@ -1,5 +1,5 @@
 /**
- * @file sql5300.cpp - TODO: describe
+ * @file sql5300.cpp - Executes SQL statements
  * @authors Justin Thoreson & Mason Adsero
  * @see "Seattle University, CPSC5600, Winter 2023"
  */
@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <vector>
 #include <iostream>
 #include "db_cxx.h"
 #include "SQLParser.h"
@@ -26,15 +25,15 @@ void runSQLShell();
 
 /**
  * @brief Processes a single SQL query
- * @param query A SQL query (or queries) to process
+ * @param sql A SQL query (or queries) to process
  */
-void handleSQLQuery(std::string);
+void handleSQL(std::string);
 
 /**
  * @brief Processes SQL statements within a parsed query
- * @param parsedQuery A pointer to a parsed SQL query
+ * @param parsedSQL A pointer to a parsed SQL query
  */
-void handleSQLStatements(hsql::SQLParserResult* const);
+void handleStatements(hsql::SQLParserResult* const);
 
 /**
  * @brief Executes a provided SQL statement
@@ -134,34 +133,33 @@ int main(int argc, char** argv) {
 }
 
 void runSQLShell() {
-  std::string query = "";
-  while (query != QUIT) {
+  std::string sql = "";
+  while (sql != QUIT) {
     std::cout << "SQL> ";
-    std::getline(std::cin, query);
-    handleSQLQuery(query);
+    std::getline(std::cin, sql);
+    handleSQL(sql);
   }
 }
 
-void handleSQLQuery(std::string query) {
-  if (query == QUIT) return;
-  hsql::SQLParserResult* const parsedQuery = hsql::SQLParser::parseSQLString(query);
-  if (!parsedQuery->isValid())
-    std::cout << "INVALID SQL: " << query << std::endl;
+void handleSQL(std::string sql) {
+  if (sql == QUIT) return;
+  hsql::SQLParserResult* const parsedSQL = hsql::SQLParser::parseSQLString(sql);
+  if (!parsedSQL->isValid())
+    std::cout << "INVALID SQL: " << sql << std::endl;
   else
-    handleSQLStatements(parsedQuery);
+    handleStatements(parsedSQL);
 }
 
-void handleSQLStatements(hsql::SQLParserResult* const parsedQuery) {
-  std::size_t parsedQuerySize = parsedQuery->size();
-  for (std::size_t i = 0; i < parsedQuerySize; i++) {
-    const hsql::SQLStatement* const statement = parsedQuery->getStatement(i);
+void handleStatements(hsql::SQLParserResult* const parsedSQL) {
+  std::size_t nStatements = parsedSQL->size();
+  for (std::size_t i = 0; i < nStatements; i++) {
+    const hsql::SQLStatement* const statement = parsedSQL->getStatement(i);
     execute(statement);
   }
 }
 
 void execute(const hsql::SQLStatement* const statement) {
-  std::string unparsedStatement = unparse(statement);
-  std::cout << unparsedStatement << std::endl;
+  std::cout << unparse(statement) << std::endl;
 }
 
 std::string unparse(const hsql::SQLStatement* const statement) {
@@ -175,31 +173,30 @@ std::string unparse(const hsql::SQLStatement* const statement) {
   }
 }
 
-std::string unparse(const hsql::SelectStatement* const selectStatement) {
+std::string unparse(const hsql::SelectStatement* const statement) {
   std::string unparsed = "SELECT ";
-  std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
-  std::size_t selectListSize = selectList->size();
-  for (std::size_t i = 0; i < selectListSize; i++) {
-    unparsed.append(toString(selectList->at(i)));
-    unparsed.append(i + 1 < selectListSize ? ", " : " ");
+  std::size_t nSelections = statement->selectList->size();
+  for (std::size_t i = 0; i < nSelections; i++) {
+    unparsed.append(toString(statement->selectList->at(i)));
+    unparsed.append(i + 1 < nSelections ? ", " : " ");
   }
   unparsed.append("FROM ");
-  unparsed.append(toString(selectStatement->fromTable));
-  if (selectStatement->whereClause)
-    unparsed.append(" WHERE ").append(toString(selectStatement->whereClause));
+  unparsed.append(toString(statement->fromTable));
+  if (statement->whereClause)
+    unparsed.append(" WHERE ").append(toString(statement->whereClause));
   return unparsed;
 }
 
-std::string unparse(const hsql::CreateStatement* const createStatement) {
-  if (createStatement->type != hsql::CreateStatement::CreateType::kTable)
+std::string unparse(const hsql::CreateStatement* const statement) {
+  if (statement->type != hsql::CreateStatement::CreateType::kTable)
     return "unimplemented";
   std::string unparsed = "CREATE TABLE ";
-  unparsed.append(createStatement->tableName).append(" (");
-  std::size_t columnsLength = createStatement->columns->size();
-  for (std::size_t i = 0; i < columnsLength; i++){
-    hsql::ColumnDefinition* col = createStatement->columns->at(i);
+  unparsed.append(statement->tableName).append(" (");
+  std::size_t nCols = statement->columns->size();
+  for (std::size_t i = 0; i < nCols; i++){
+    hsql::ColumnDefinition* col = statement->columns->at(i);
     unparsed.append(toString(col));
-    unparsed.append(i + 1 < columnsLength ? ", " : ") ");
+    unparsed.append(i + 1 < nCols ? ", " : ") ");
   }
   return unparsed;
 }
@@ -268,10 +265,10 @@ std::string toString(hsql::TableRef* table) {
       result.append(toString(table->join));
       break;
     case hsql::TableRefType::kTableCrossProduct:
-      std::size_t tableListSize = table->list->size();
-      for (std::size_t i = 0; i < tableListSize; i++) {
+      std::size_t nTables = table->list->size();
+      for (std::size_t i = 0; i < nTables; i++) {
         result.append(toString(table->list->at(i)));
-        result.append(i + 1 < tableListSize ? ", " : " ");
+        result.append(i + 1 < nTables ? ", " : " ");
       }
       break;
   }
