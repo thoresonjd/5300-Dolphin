@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
   const std::string ENV_DIR = argv[1];
-  //dbConfig(ENV_DIR);
+  dbConfig(ENV_DIR);
   std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
   runSQLShell();
   return EXIT_SUCCESS;
