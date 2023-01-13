@@ -54,42 +54,42 @@ std::string unparse(const hsql::SQLStatement* const);
  * @param statement A pointer to a SELECT statement
  * @return An unparsed SELECT statement
  */
-std::string unparseSelectStatement(const hsql::SelectStatement* const);
+std::string unparse(const hsql::SelectStatement* const);
 
 /**
  * @brief Unparses a CREATE statement into a string
  * @param statement A pointer to a CREATE statement
  * @return An unparsed CREATE statement
  */
-std::string unparseCreateStatement(const hsql::CreateStatement* const);
+std::string unparse(const hsql::CreateStatement* const);
 
 /**
  * @brief Converts an Expr type expression to a string
  * @param expr A pointer the an expression
  * @return The string equivalent of an expression
  */
-std::string exprToString(hsql::Expr* const);
+std::string toString(hsql::Expr* const);
 
 /**
  * @brief Converts a ColumnDefinition type to a string
  * @param col A pointer to a database column
  * @return The string equivalent of a column
  */
-std::string colToString(hsql::ColumnDefinition* const);
+std::string toString(hsql::ColumnDefinition* const);
 
 /**
  * @brief Converts a TableRef type to a string
  * @param table A pointer to a database table
  * @return The string equivalent of a table
  */
-std::string tableToString(hsql::TableRef*);
+std::string toString(hsql::TableRef*);
 
 /**
  * @brief Converts a JoinDefinition type to a string
  * @param table A pointer to a join definition
  * @return The string equivalent of a join definition
  */
-std::string joinToString(hsql::JoinDefinition*);
+std::string toString(hsql::JoinDefinition*);
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -167,30 +167,30 @@ void execute(const hsql::SQLStatement* const statement) {
 std::string unparse(const hsql::SQLStatement* const statement) {
   switch (statement->type()) {
     case hsql::StatementType::kStmtSelect:
-      return unparseSelectStatement(dynamic_cast<const hsql::SelectStatement*>(statement));
+      return unparse(dynamic_cast<const hsql::SelectStatement*>(statement));
     case hsql::StatementType::kStmtCreate:
-      return unparseCreateStatement(dynamic_cast<const hsql::CreateStatement*>(statement));
+      return unparse(dynamic_cast<const hsql::CreateStatement*>(statement));
     default:
       return "Not implemented";
   }
 }
 
-std::string unparseSelectStatement(const hsql::SelectStatement* const selectStatement) {
+std::string unparse(const hsql::SelectStatement* const selectStatement) {
   std::string unparsed = "SELECT ";
   std::vector<hsql::Expr*>* selectList = selectStatement->selectList;
   std::size_t selectListSize = selectList->size();
   for (std::size_t i = 0; i < selectListSize; i++) {
-    unparsed.append(exprToString(selectList->at(i)));
+    unparsed.append(toString(selectList->at(i)));
     unparsed.append(i + 1 < selectListSize ? ", " : " ");
   }
   unparsed.append("FROM ");
-  unparsed.append(tableToString(selectStatement->fromTable));
+  unparsed.append(toString(selectStatement->fromTable));
   if (selectStatement->whereClause)
-    unparsed.append(" WHERE ").append(exprToString(selectStatement->whereClause));
+    unparsed.append(" WHERE ").append(toString(selectStatement->whereClause));
   return unparsed;
 }
 
-std::string unparseCreateStatement(const hsql::CreateStatement* const createStatement) {
+std::string unparse(const hsql::CreateStatement* const createStatement) {
   if (createStatement->type != hsql::CreateStatement::CreateType::kTable)
     return "unimplemented";
   std::string unparsed = "CREATE TABLE ";
@@ -198,27 +198,27 @@ std::string unparseCreateStatement(const hsql::CreateStatement* const createStat
   std::size_t columnsLength = createStatement->columns->size();
   for (std::size_t i = 0; i < columnsLength; i++){
     hsql::ColumnDefinition* col = createStatement->columns->at(i);
-    unparsed.append(colToString(col));
+    unparsed.append(toString(col));
     unparsed.append(i + 1 < columnsLength ? ", " : ") ");
   }
   return unparsed;
 }
 
-std::string exprToString(hsql::Expr* const expr) {
+std::string toString(hsql::Expr* const expr) {
   std::string result = "";
   switch (expr->type) {
     case hsql::ExprType::kExprStar:
       result = "*";
       break;
     case hsql::ExprType::kExprOperator:
-      result.append(exprToString(expr->expr)).append(" ");
+      result.append(toString(expr->expr)).append(" ");
       result.push_back(expr->opChar);
       result.append(" ");
       if (expr->expr2)
-        result.append(exprToString(expr->expr2));
+        result.append(toString(expr->expr2));
       else if (expr->exprList)
         for(hsql::Expr* expr : *expr->exprList)
-          result.append(exprToString(expr));
+          result.append(toString(expr));
       break;
     case hsql::ExprType::kExprColumnRef:
     case hsql::ExprType::kExprLiteralString:
@@ -241,7 +241,7 @@ std::string exprToString(hsql::Expr* const expr) {
   return result;
 }
 
-std::string colToString(hsql::ColumnDefinition* const col) {
+std::string toString(hsql::ColumnDefinition* const col) {
   std::string result = "";
   result.append(col->name);
   switch (col->type) {
@@ -258,19 +258,19 @@ std::string colToString(hsql::ColumnDefinition* const col) {
   return result;
 }
 
-std::string tableToString(hsql::TableRef* table) {
+std::string toString(hsql::TableRef* table) {
   std::string result = "";
   switch (table->type) {
     case hsql::TableRefType::kTableName:
       result.append(table->name);
       break;
     case hsql::TableRefType::kTableJoin:
-      result.append(joinToString(table->join));
+      result.append(toString(table->join));
       break;
     case hsql::TableRefType::kTableCrossProduct:
       std::size_t tableListSize = table->list->size();
       for (std::size_t i = 0; i < tableListSize; i++) {
-        result.append(tableToString(table->list->at(i)));
+        result.append(toString(table->list->at(i)));
         result.append(i + 1 < tableListSize ? ", " : " ");
       }
       break;
@@ -280,9 +280,9 @@ std::string tableToString(hsql::TableRef* table) {
   return result;
 }
 
-std::string joinToString(hsql::JoinDefinition* join) {
+std::string toString(hsql::JoinDefinition* join) {
   std::string result = "";
-  result.append(tableToString(join->left));
+  result.append(toString(join->left));
   switch (join->type) {
     case hsql::JoinType::kJoinInner:
       result.append(" JOIN ");
@@ -291,7 +291,7 @@ std::string joinToString(hsql::JoinDefinition* join) {
       result.append(" LEFT JOIN ");
       break;
   }
-  result.append(tableToString(join->right));
-  result.append(" ON ").append(exprToString(join->condition));
+  result.append(toString(join->right));
+  result.append(" ON ").append(toString(join->condition));
   return result;
 }
