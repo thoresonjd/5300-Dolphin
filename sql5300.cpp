@@ -19,81 +19,78 @@ const std::string DB_NAME = "sql5300.db";
 const std::string QUIT = "quit";
 
 /**
- * @brief Established as database
- * 
  * Tests the establishment of, writing to, and reading from a database
- * 
  * @param envDir The database environment directory
  */
 void dbConfig(const std::string envDir);
 
 /**
- * @brief Runs the SQL shell loop and listens for queries
+ * Runs the SQL shell loop and listens for queries
  */
 void runSQLShell();
 
 /**
- * @brief Processes a single SQL query
+ * Processes a single SQL query
  * @param sql A SQL query (or queries) to process
  */
 void handleSQL(std::string);
 
 /**
- * @brief Processes SQL statements within a parsed query
+ * Processes SQL statements within a parsed query
  * @param parsedSQL A pointer to a parsed SQL query
  */
 void handleStatements(hsql::SQLParserResult* const);
 
 /**
- * @brief Executes a provided SQL statement
+ * Executes a provided SQL statement
  * @param statement A pointer to a SQL statement
  */
 void execute(const hsql::SQLStatement* const);
 
 /**
- * @brief Unparses a statement into a string
+ * Unparses a statement into a string
  * @param statement A pointer to a SQL statement
  * @return An unparsed SQL statement
  */
 std::string unparse(const hsql::SQLStatement* const);
 
 /**
- * @brief Unparses a SELECT statement into a string
+ * Unparses a SELECT statement into a string
  * @param statement A pointer to a SELECT statement
  * @return An unparsed SELECT statement
  */
 std::string unparse(const hsql::SelectStatement* const);
 
 /**
- * @brief Unparses a CREATE statement into a string
+ * Unparses a CREATE statement into a string
  * @param statement A pointer to a CREATE statement
  * @return An unparsed CREATE statement
  */
 std::string unparse(const hsql::CreateStatement* const);
 
 /**
- * @brief Converts an Expr type expression to a string
+ * Converts an Expr type expression to a string
  * @param expr A pointer the an expression
  * @return The string equivalent of an expression
  */
 std::string toString(hsql::Expr* const);
 
 /**
- * @brief Converts a ColumnDefinition type to a string
+ * Converts a ColumnDefinition type to a string
  * @param col A pointer to a database column
  * @return The string equivalent of a column
  */
 std::string toString(hsql::ColumnDefinition* const);
 
 /**
- * @brief Converts a TableRef type to a string
+ * Converts a TableRef type to a string
  * @param table A pointer to a database table
  * @return The string equivalent of a table
  */
 std::string toString(hsql::TableRef*);
 
 /**
- * @brief Converts a JoinDefinition type to a string
+ * Converts a JoinDefinition type to a string
  * @param table A pointer to a join definition
  * @return The string equivalent of a join definition
  */
@@ -178,7 +175,7 @@ std::string unparse(const hsql::SQLStatement* const statement) {
     case hsql::StatementType::kStmtCreate:
       return unparse(dynamic_cast<const hsql::CreateStatement*>(statement));
     default:
-      return "unsupported";
+      return "...";
   }
 }
 
@@ -198,7 +195,7 @@ std::string unparse(const hsql::SelectStatement* const statement) {
 
 std::string unparse(const hsql::CreateStatement* const statement) {
   if (statement->type != hsql::CreateStatement::CreateType::kTable)
-    return "unimplemented";
+    return "...";
   std::string unparsed = "CREATE TABLE ";
   unparsed.append(statement->tableName).append(" (");
   std::size_t nCols = statement->columns->size();
@@ -240,16 +237,15 @@ std::string toString(hsql::Expr* const expr) {
     case hsql::ExprType::kExprLiteralFloat:
       result = std::to_string(expr->fval);
       break;
-    case hsql::ExprType::kExprFunctionRef:
-      result = "kExprFunctionRef unsupported";
+    default:
+      result = "...";
       break;
-  }
+    }
   return result;
 }
 
 std::string toString(hsql::ColumnDefinition* const col) {
-  std::string result = "";
-  result.append(col->name);
+  std::string result(col->name);
   switch (col->type) {
     case hsql::ColumnDefinition::DataType::TEXT:
       result.append(" TEXT");
@@ -259,6 +255,9 @@ std::string toString(hsql::ColumnDefinition* const col) {
       break;
     case hsql::ColumnDefinition::DataType::DOUBLE:
       result.append(" DOUBLE");
+      break;
+    default:
+      result.append(" ...");
       break;
   }
   return result;
@@ -273,12 +272,16 @@ std::string toString(hsql::TableRef* table) {
     case hsql::TableRefType::kTableJoin:
       result.append(toString(table->join));
       break;
-    case hsql::TableRefType::kTableCrossProduct:
+    case hsql::TableRefType::kTableCrossProduct: {
       std::size_t nTables = table->list->size();
       for (std::size_t i = 0; i < nTables; i++) {
         result.append(toString(table->list->at(i)));
         result.append(i + 1 < nTables ? ", " : " ");
       }
+      break;
+    }
+    default:
+      result.append("...");
       break;
   }
   if (table->alias)
@@ -287,14 +290,16 @@ std::string toString(hsql::TableRef* table) {
 }
 
 std::string toString(hsql::JoinDefinition* join) {
-  std::string result = "";
-  result.append(toString(join->left));
+  std::string result(toString(join->left));
   switch (join->type) {
     case hsql::JoinType::kJoinInner:
       result.append(" JOIN ");
       break;
     case hsql::JoinType::kJoinLeft:
       result.append(" LEFT JOIN ");
+      break;
+    default:
+      result.append(" ... ");
       break;
   }
   result.append(toString(join->right));
