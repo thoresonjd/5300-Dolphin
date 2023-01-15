@@ -1,5 +1,5 @@
 /**
- * @file sql5300.cpp - Executes SQL statements
+ * @file sql5300.cpp - SQL Shell
  * @authors Justin Thoreson & Mason Adsero
  * @see "Seattle University, CPSC5600, Winter 2023"
  */
@@ -22,7 +22,7 @@ const std::string QUIT = "quit";
  * Tests the establishment of, writing to, and reading from a database
  * @param envDir The database environment directory
  */
-void dbConfig(const std::string envDir);
+void dbConfig(const std::string);
 
 /**
  * Runs the SQL shell loop and listens for queries
@@ -96,7 +96,7 @@ std::string toString(hsql::TableRef*);
  */
 std::string toString(hsql::JoinDefinition*);
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     if (argc != 2) {
         std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
         return EXIT_FAILURE;
