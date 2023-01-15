@@ -96,218 +96,219 @@ std::string toString(hsql::TableRef*);
  */
 std::string toString(hsql::JoinDefinition*);
 
-int main(int argc, char** argv) {
-  if (argc != 2) {
-    std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
-    return EXIT_FAILURE;
-  }
-  const std::string ENV_DIR = argv[1];
-  dbConfig(ENV_DIR);
-  std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
-  runSQLShell();
-  return EXIT_SUCCESS;
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
+        return EXIT_FAILURE;
+    }
+    const std::string ENV_DIR = argv[1];
+    dbConfig(ENV_DIR);
+    std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
+    runSQLShell();
+    return EXIT_SUCCESS;
 }
 
-void dbConfig(const std::string envDir) {
-  // Establish database environment
-  DbEnv env(0U);
-  env.set_message_stream(&std::cout);
-  env.set_error_stream(&std::cerr);
-  try {
-    env.open(envDir.c_str(), ENV_FLAGS, 0);
-  } catch (DbException& dbEx) {
-    std::cerr << "(sql5300: " << dbEx.what() << ")\n";
-    exit(EXIT_FAILURE);
-  }
+void dbConfig(const std::string envDir)
+{
+    // Establish database environment
+    DbEnv env(0U);
+    env.set_message_stream(&std::cout);
+    env.set_error_stream(&std::cerr);
+    try {
+        env.open(envDir.c_str(), ENV_FLAGS, 0);
+    } catch (DbException& dbEx) {
+        std::cerr << "(sql5300: " << dbEx.what() << ")\n";
+        exit(EXIT_FAILURE);
+    }
 
-  // Establish database
-  Db db(&env, 0);
-  db.set_message_stream(env.get_message_stream());
-  db.set_error_stream(env.get_error_stream());
-  db.set_re_len(BLOCK_SZ);
-  db.open(NULL, DB_NAME.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
+    // Establish database
+    Db db(&env, 0);
+    db.set_message_stream(env.get_message_stream());
+    db.set_error_stream(env.get_error_stream());
+    db.set_re_len(BLOCK_SZ);
+    db.open(NULL, DB_NAME.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
 
-  // Write block to db
-  char block[BLOCK_SZ];
-  Dbt data(block, sizeof(block));
-  int block_number;
-  Dbt key(&block_number, sizeof(block_number));
-  block_number = 1;
-  strcpy(block, "Hello, DB!");
-  db.put(NULL, &key, &data, 0);
+    // Write block to db
+    char block[BLOCK_SZ];
+    Dbt data(block, sizeof(block));
+    int block_number;
+    Dbt key(&block_number, sizeof(block_number));
+    block_number = 1;
+    strcpy(block, "Hello, DB!");
+    db.put(NULL, &key, &data, 0);
 
-  // Read block from db
-  Dbt rData;
-  db.get(NULL, &key, &rData, 0);
-  std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
-  std::cout << " (expect 'Hello, DB!')" << std::endl;
+    // Read block from db
+    Dbt rData;
+    db.get(NULL, &key, &rData, 0);
+    std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
+    std::cout << " (expect 'Hello, DB!')" << std::endl;
 }
 
 void runSQLShell() {
-  std::string sql = "";
-  while (sql != QUIT) {
-    std::cout << "SQL> ";
-    std::getline(std::cin, sql);
-    handleSQL(sql);
-  }
+    std::string sql = "";
+    while (sql != QUIT) {
+        std::cout << "SQL> ";
+        std::getline(std::cin, sql);
+        handleSQL(sql);
+    }
 }
 
 void handleSQL(std::string sql) {
-  if (sql == QUIT) return;
-  hsql::SQLParserResult* const parsedSQL = hsql::SQLParser::parseSQLString(sql);
-  if (!parsedSQL->isValid())
-    std::cout << "INVALID SQL: " << sql << std::endl;
-  else
-    handleStatements(parsedSQL);
+    if (sql == QUIT) return;
+    hsql::SQLParserResult* const parsedSQL = hsql::SQLParser::parseSQLString(sql);
+    if (!parsedSQL->isValid())
+        std::cout << "INVALID SQL: " << sql << std::endl;
+    else
+        handleStatements(parsedSQL);
 }
 
 void handleStatements(hsql::SQLParserResult* const parsedSQL) {
-  std::size_t nStatements = parsedSQL->size();
-  for (std::size_t i = 0; i < nStatements; i++) {
-    const hsql::SQLStatement* const statement = parsedSQL->getStatement(i);
-    execute(statement);
-  }
+    std::size_t nStatements = parsedSQL->size();
+    for (std::size_t i = 0; i < nStatements; i++) {
+        const hsql::SQLStatement *const statement = parsedSQL->getStatement(i);
+        execute(statement);
+    }
 }
 
 void execute(const hsql::SQLStatement* const statement) {
-  std::cout << unparse(statement) << std::endl;
+    std::cout << unparse(statement) << std::endl;
 }
 
 std::string unparse(const hsql::SQLStatement* const statement) {
-  switch (statement->type()) {
-    case hsql::StatementType::kStmtSelect:
-      return unparse(dynamic_cast<const hsql::SelectStatement*>(statement));
-    case hsql::StatementType::kStmtCreate:
-      return unparse(dynamic_cast<const hsql::CreateStatement*>(statement));
-    default:
-      return "...";
-  }
+    switch (statement->type()) {
+        case hsql::StatementType::kStmtSelect:
+            return unparse(dynamic_cast<const hsql::SelectStatement*>(statement));
+        case hsql::StatementType::kStmtCreate:
+            return unparse(dynamic_cast<const hsql::CreateStatement*>(statement));
+        default:
+            return "...";
+    }
 }
 
 std::string unparse(const hsql::SelectStatement* const statement) {
-  std::string unparsed = "SELECT ";
-  std::size_t nSelections = statement->selectList->size();
-  for (std::size_t i = 0; i < nSelections; i++) {
-    unparsed.append(toString(statement->selectList->at(i)));
-    unparsed.append(i + 1 < nSelections ? ", " : " ");
-  }
-  unparsed.append("FROM ");
-  unparsed.append(toString(statement->fromTable));
-  if (statement->whereClause)
-    unparsed.append(" WHERE ").append(toString(statement->whereClause));
-  return unparsed;
+    std::string unparsed = "SELECT ";
+    std::size_t nSelections = statement->selectList->size();
+    for (std::size_t i = 0; i < nSelections; i++) {
+        unparsed.append(toString(statement->selectList->at(i)));
+        unparsed.append(i + 1 < nSelections ? ", " : " ");
+    }
+    unparsed.append("FROM ");
+    unparsed.append(toString(statement->fromTable));
+    if (statement->whereClause)
+        unparsed.append(" WHERE ").append(toString(statement->whereClause));
+    return unparsed;
 }
 
 std::string unparse(const hsql::CreateStatement* const statement) {
-  if (statement->type != hsql::CreateStatement::CreateType::kTable)
-    return "...";
-  std::string unparsed = "CREATE TABLE ";
-  unparsed.append(statement->tableName).append(" (");
-  std::size_t nCols = statement->columns->size();
-  for (std::size_t i = 0; i < nCols; i++){
-    hsql::ColumnDefinition* col = statement->columns->at(i);
-    unparsed.append(toString(col));
-    unparsed.append(i + 1 < nCols ? ", " : ") ");
-  }
-  return unparsed;
+    if (statement->type != hsql::CreateStatement::CreateType::kTable)
+        return "...";
+    std::string unparsed = "CREATE TABLE ";
+    unparsed.append(statement->tableName).append(" (");
+    std::size_t nCols = statement->columns->size();
+    for (std::size_t i = 0; i < nCols; i++) {
+        hsql::ColumnDefinition *col = statement->columns->at(i);
+        unparsed.append(toString(col));
+        unparsed.append(i + 1 < nCols ? ", " : ") ");
+    }
+    return unparsed;
 }
 
 std::string toString(hsql::Expr* const expr) {
-  std::string result = "";
-  switch (expr->type) {
-    case hsql::ExprType::kExprStar:
-      result = "*";
-      break;
-    case hsql::ExprType::kExprOperator:
-      result.append(toString(expr->expr)).append(" ");
-      result.push_back(expr->opChar);
-      result.append(" ");
-      if (expr->expr2)
-        result.append(toString(expr->expr2));
-      else if (expr->exprList)
-        for(hsql::Expr* expr : *expr->exprList)
-          result.append(toString(expr));
-      break;
-    case hsql::ExprType::kExprColumnRef:
-    case hsql::ExprType::kExprLiteralString:
-      if (expr->table)
-        result.append(expr->table).append(".");
-      else if (expr->alias)
-        result.append(expr->alias).append(".");
-      result.append(expr->name);
-      break;
-    case hsql::ExprType::kExprLiteralInt:
-      result = std::to_string(expr->ival);
-      break;
-    case hsql::ExprType::kExprLiteralFloat:
-      result = std::to_string(expr->fval);
-      break;
-    default:
-      result = "...";
-      break;
+    std::string result = "";
+    switch (expr->type) {
+        case hsql::ExprType::kExprStar:
+            result = "*";
+            break;
+        case hsql::ExprType::kExprOperator:
+            result.append(toString(expr->expr)).append(" ");
+            result.push_back(expr->opChar);
+            result.append(" ");
+            if (expr->expr2)
+                result.append(toString(expr->expr2));
+            else if (expr->exprList)
+                for (hsql::Expr *expr : *expr->exprList)
+                    result.append(toString(expr));
+            break;
+        case hsql::ExprType::kExprColumnRef:
+        case hsql::ExprType::kExprLiteralString:
+            if (expr->table)
+                result.append(expr->table).append(".");
+            else if (expr->alias)
+                result.append(expr->alias).append(".");
+            result.append(expr->name);
+            break;
+        case hsql::ExprType::kExprLiteralInt:
+            result = std::to_string(expr->ival);
+            break;
+        case hsql::ExprType::kExprLiteralFloat:
+            result = std::to_string(expr->fval);
+            break;
+        default:
+            result = "...";
+            break;
     }
-  return result;
+    return result;
 }
 
 std::string toString(hsql::ColumnDefinition* const col) {
-  std::string result(col->name);
-  switch (col->type) {
-    case hsql::ColumnDefinition::DataType::TEXT:
-      result.append(" TEXT");
-      break;
-    case hsql::ColumnDefinition::DataType::INT:
-      result.append(" INT");
-      break;
-    case hsql::ColumnDefinition::DataType::DOUBLE:
-      result.append(" DOUBLE");
-      break;
-    default:
-      result.append(" ...");
-      break;
-  }
-  return result;
+    std::string result(col->name);
+    switch (col->type) {
+        case hsql::ColumnDefinition::DataType::TEXT:
+            result.append(" TEXT");
+            break;
+        case hsql::ColumnDefinition::DataType::INT:
+            result.append(" INT");
+            break;
+        case hsql::ColumnDefinition::DataType::DOUBLE:
+            result.append(" DOUBLE");
+            break;
+        default:
+            result.append(" ...");
+            break;
+    }
+    return result;
 }
 
 std::string toString(hsql::TableRef* table) {
-  std::string result = "";
-  switch (table->type) {
-    case hsql::TableRefType::kTableName:
-      result.append(table->name);
-      break;
-    case hsql::TableRefType::kTableJoin:
-      result.append(toString(table->join));
-      break;
-    case hsql::TableRefType::kTableCrossProduct: {
-      std::size_t nTables = table->list->size();
-      for (std::size_t i = 0; i < nTables; i++) {
-        result.append(toString(table->list->at(i)));
-        result.append(i + 1 < nTables ? ", " : " ");
-      }
-      break;
+    std::string result = "";
+    switch (table->type) {
+        case hsql::TableRefType::kTableName:
+            result.append(table->name);
+            break;
+        case hsql::TableRefType::kTableJoin:
+            result.append(toString(table->join));
+            break;
+        case hsql::TableRefType::kTableCrossProduct: {
+            std::size_t nTables = table->list->size();
+            for (std::size_t i = 0; i < nTables; i++) {
+                result.append(toString(table->list->at(i)));
+                result.append(i + 1 < nTables ? ", " : " ");
+            }
+            break;
+        }
+        default:
+            result.append("...");
+            break;
     }
-    default:
-      result.append("...");
-      break;
-  }
-  if (table->alias)
-    result.append(" AS ").append(table->alias);
-  return result;
+    if (table->alias)
+        result.append(" AS ").append(table->alias);
+    return result;
 }
 
 std::string toString(hsql::JoinDefinition* join) {
-  std::string result(toString(join->left));
-  switch (join->type) {
-    case hsql::JoinType::kJoinInner:
-      result.append(" JOIN ");
-      break;
-    case hsql::JoinType::kJoinLeft:
-      result.append(" LEFT JOIN ");
-      break;
-    default:
-      result.append(" ... ");
-      break;
-  }
-  result.append(toString(join->right));
-  result.append(" ON ").append(toString(join->condition));
-  return result;
+    std::string result(toString(join->left));
+    switch (join->type) {
+        case hsql::JoinType::kJoinInner:
+            result.append(" JOIN ");
+            break;
+        case hsql::JoinType::kJoinLeft:
+            result.append(" LEFT JOIN ");
+            break;
+        default:
+            result.append(" ... ");
+            break;
+    }
+    result.append(toString(join->right));
+    result.append(" ON ").append(toString(join->condition));
+    return result;
 }
