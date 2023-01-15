@@ -113,7 +113,12 @@ void dbConfig(const std::string envDir) {
   DbEnv env(0U);
   env.set_message_stream(&std::cout);
   env.set_error_stream(&std::cerr);
-  env.open(envDir.c_str(), ENV_FLAGS, 0);
+  try {
+    env.open(envDir.c_str(), ENV_FLAGS, 0);
+  } catch (DbException& dbEx) {
+    std::cerr << "(sql5300: " << dbEx.what() << ")\n";
+    exit(EXIT_FAILURE);
+  }
 
   // Establish database
   Db db(&env, 0);
