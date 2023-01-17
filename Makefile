@@ -13,8 +13,12 @@ OBJS = sql5300.o
 	g++ -I$(INCLUDE_DIR) $(CCFLAGS) -o $@ $<
 
 # Rule for linking to create executable
-sql5300: $(OBJS)
+sql5300 : $(OBJS)
 	g++ -L$(LIB_DIR) -o $@ $< -ldb_cxx -lsqlparser
+
+# Compile sql5300 and check for errors
+check : sql5300
+	valgrind --leak-check=full --track-fds=yes ./$<
 
 # Rule for removing all non-source files
 clean : 

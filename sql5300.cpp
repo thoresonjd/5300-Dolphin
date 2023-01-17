@@ -87,14 +87,14 @@ std::string toString(hsql::ColumnDefinition* const);
  * @param table A pointer to a database table
  * @return The string equivalent of a table
  */
-std::string toString(hsql::TableRef*);
+std::string toString(hsql::TableRef* const);
 
 /**
  * Converts a JoinDefinition type to a string
  * @param table A pointer to a join definition
  * @return The string equivalent of a join definition
  */
-std::string toString(hsql::JoinDefinition*);
+std::string toString(hsql::JoinDefinition* const);
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -269,7 +269,7 @@ std::string toString(hsql::ColumnDefinition* const col) {
     return result;
 }
 
-std::string toString(hsql::TableRef* table) {
+std::string toString(hsql::TableRef* const table) {
     std::string result = "";
     switch (table->type) {
         case hsql::TableRefType::kTableName:
@@ -295,7 +295,7 @@ std::string toString(hsql::TableRef* table) {
     return result;
 }
 
-std::string toString(hsql::JoinDefinition* join) {
+std::string toString(hsql::JoinDefinition* const join) {
     std::string result(toString(join->left));
     switch (join->type) {
         case hsql::JoinType::kJoinInner:
