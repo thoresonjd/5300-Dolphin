@@ -6,15 +6,19 @@ CCFLAGS = -std=c++11 -std=c++0x -Wall -Wno-c++11-compat -DHAVE_CXX_STDHEADERS -D
 COURSE = /usr/local/db6
 INCLUDE_DIR = $(COURSE)/include
 LIB_DIR = $(COURSE)/lib
-OBJS = sql5300.o
-
-# General rule for compilation
-%.o : %.cpp
-	g++ -I$(INCLUDE_DIR) $(CCFLAGS) -o $@ $<
+OBJS = sql5300.o heap_storage.o
 
 # Rule for linking to create executable
 sql5300 : $(OBJS)
 	g++ -L$(LIB_DIR) -o $@ $< -ldb_cxx -lsqlparser
+
+# Header file dependecies
+sql5300.o : heap_storage.h storage_engine.h
+heap_storage.o : heap_storage.h storage_engine.h
+
+# General rule for compilation
+%.o : %.cpp
+	g++ -I$(INCLUDE_DIR) $(CCFLAGS) -o $@ $<
 
 # Compile sql5300 and check for errors
 check : sql5300
