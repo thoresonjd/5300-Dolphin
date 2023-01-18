@@ -149,7 +149,8 @@ void runSQLShell() {
     while (sql != QUIT) {
         std::cout << "SQL> ";
         std::getline(std::cin, sql);
-        handleSQL(sql);
+        if (sql.length())
+            handleSQL(sql);
     }
 }
 
