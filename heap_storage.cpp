@@ -1,4 +1,5 @@
 #include "heap_storage.h"
+#include <cstring>
 bool test_heap_storage() {return true;}
 
 //Begin Slotted Page functions
@@ -43,6 +44,11 @@ void SlottedPage::put_n(u16 offset, u16 n) {
 // Make a void* pointer for a given offset into the data block.
 void* SlottedPage::address(u16 offset) {
     return (void*)((char*)this->block.get_data() + offset);
+}
+
+void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
+    size = get_n(4*id);
+    loc = get_n(4*id+2);
 }
 
 // Store the size and offset for given id. For id of zero, store the block header.
