@@ -61,6 +61,11 @@ void SlottedPage::put_header(RecordID id, u16 size, u16 loc) {
     put_n(4*id + 2, loc);
 }
 
+bool SlottedPage::has_room(u16 size){
+    u16 available = this->end_free - (this->num_records+1)*4;
+    return size <= available;
+}
+
 //End Slotted Page Functions
 
 //Begin Heap File Functions
