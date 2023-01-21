@@ -31,20 +31,6 @@ RecordID SlottedPage::add(const Dbt* data) {
     return id;
 }
 
-// Get 2-byte integer at given offset in block.
-u16 SlottedPage::get_n(u16 offset) {
-    return *(u16*)this->address(offset);
-}
-
-// Put a 2-byte integer at given offset in block.
-void SlottedPage::put_n(u16 offset, u16 n) {
-    *(u16*)this->address(offset) = n;
-}
-
-// Make a void* pointer for a given offset into the data block.
-void* SlottedPage::address(u16 offset) {
-    return (void*)((char*)this->block.get_data() + offset);
-}
 
 void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
     size = get_n(4*id);
@@ -66,6 +52,20 @@ bool SlottedPage::has_room(u16 size){
     return size <= available;
 }
 
+// Get 2-byte integer at given offset in block.
+u16 SlottedPage::get_n(u16 offset) {
+    return *(u16*)this->address(offset);
+}
+
+// Put a 2-byte integer at given offset in block.
+void SlottedPage::put_n(u16 offset, u16 n) {
+    *(u16*)this->address(offset) = n;
+}
+
+// Make a void* pointer for a given offset into the data block.
+void* SlottedPage::address(u16 offset) {
+    return (void*)((char*)this->block.get_data() + offset);
+}
 //End Slotted Page Functions
 
 //Begin Heap File Functions
