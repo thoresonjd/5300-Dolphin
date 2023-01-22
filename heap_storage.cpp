@@ -57,6 +57,10 @@ void SlottedPage::put(RecordID record_id, const Dbt& data) {
     this->put_header(record_id, new_size, loc);
 }
 
+RecordIDs* SlottedPage::ids(void) {
+    return nullptr;
+}
+
 void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
     size = get_n(4*id);
     loc = get_n(4*id+2);
@@ -80,7 +84,26 @@ bool SlottedPage::has_room(u16 size){
 void SlottedPage::slide(u16 start, u16 end) {
     u16 shift = end - start;
     if (!shift) return;
-    // TODO: implement
+    
+    // Slide data
+    void* old_loc = this->address(this->end_Free + 1);
+    void* new_loc = this->address(this->end_Free + shift + 1);
+    u16 size = start - (this->end_free + 1);
+    memmove(new_loc, old_loc, bytes);
+
+    // Fixup headers
+    RecordIDs* record_ids = this->ids();
+    for (RecordID record_id : record_ids) {
+        u16 size, loc;
+        this->get_header(size, loc, record_id);
+        if (loc <= start) {
+            loc += shift;
+            this->put_header(record_id, size, loc);
+        }
+    }
+    delete record_ids;
+    this->end_free += shift;
+    this->put_header(); // Update main block header
 }
 
 // Get 2-byte integer at given offset in block.
