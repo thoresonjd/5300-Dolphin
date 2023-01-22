@@ -23,10 +23,10 @@ extern DbEnv *_DB_ENV;
 /*
  * Convenient aliases for types
  */
-typedef u_int16_t RecordID;
-typedef u_int32_t BlockID;
-typedef std::vector<RecordID> RecordIDs;
-typedef std::length_error DbBlockNoRoomError;
+using RecordID = u_int16_t;
+using BlockID = u_int32_t;
+using RecordIDs = std::vector<RecordID>;
+using DbBlockNoRoomError = std::length_error;
 
 /**
  * @class DbBlock - abstract base class for blocks in our database files 
