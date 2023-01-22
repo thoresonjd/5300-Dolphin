@@ -16,8 +16,6 @@ SlottedPage::SlottedPage(Dbt &block, BlockID block_id, bool is_new) : DbBlock(bl
     }
 }
 
-SlottedPage::~SlottedPage() {}
-
 // Add a new record to the block. Return its id.
 RecordID SlottedPage::add(const Dbt* data) {
     if (!has_room(data->get_size()))
@@ -50,7 +48,7 @@ void SlottedPage::put(RecordID record_id, const Dbt& data) {
         this->slide(loc + new_size, loc + size);
         memcpy(this->address(loc - extra), data.get_data(), new_size);
     } else {
-        memcpy(this->address(loc), data.get_data(), new_size));
+        memcpy(this->address(loc), data.get_data(), new_size);
         this->slide(loc + new_size, loc + size);
     }
     this->get_header(size, loc, record_id);
@@ -63,7 +61,7 @@ RecordIDs* SlottedPage::ids(void) {
         u16 size, loc;
         this->get_header(size, loc, record_id);
         if (loc) 
-            record_ids.push_back(record_id);
+            record_ids->push_back(record_id);
     }
     return record_ids;
 }
@@ -93,14 +91,14 @@ void SlottedPage::slide(u16 start, u16 end) {
     if (!shift) return;
     
     // Slide data
-    void* old_loc = this->address(this->end_Free + 1);
-    void* new_loc = this->address(this->end_Free + shift + 1);
-    u16 size = start - (this->end_free + 1);
+    void* old_loc = this->address(this->end_free + 1);
+    void* new_loc = this->address(this->end_free + shift + 1);
+    u16 bytes = start - (this->end_free + 1);
     memmove(new_loc, old_loc, bytes);
 
     // Fixup headers
     RecordIDs* record_ids = this->ids();
-    for (RecordID record_id : record_ids) {
+    for (RecordID record_id : *record_ids) {
         u16 size, loc;
         this->get_header(size, loc, record_id);
         if (loc <= start) {
