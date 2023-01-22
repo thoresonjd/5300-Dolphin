@@ -58,7 +58,14 @@ void SlottedPage::put(RecordID record_id, const Dbt& data) {
 }
 
 RecordIDs* SlottedPage::ids(void) {
-    return nullptr;
+    RecordIDs* record_ids = new RecordIDs();
+    for (u16 record_id = 0; record_id < this->num_records; record_id++) {
+        u16 size, loc;
+        this->get_header(size, loc, record_id);
+        if (loc) 
+            record_ids.push_back(record_id);
+    }
+    return record_ids;
 }
 
 void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
