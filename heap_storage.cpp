@@ -16,6 +16,8 @@ SlottedPage::SlottedPage(Dbt &block, BlockID block_id, bool is_new) : DbBlock(bl
     }
 }
 
+SlottedPage::~SlottedPage() {}
+
 // Add a new record to the block. Return its id.
 RecordID SlottedPage::add(const Dbt* data) {
     if (!has_room(data->get_size()))
@@ -30,6 +32,12 @@ RecordID SlottedPage::add(const Dbt* data) {
     return id;
 }
 
+Dbt* SlottedPage::get(RecordID record_id) {
+    u16 size, loc;
+    this->get_header(size, loc, record_id);
+    if (!loc) return nullptr; // Tombstone
+    return new Dbt(this->address(loc), size);
+}
 
 void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
     size = get_n(4*id);
@@ -65,6 +73,8 @@ void SlottedPage::put_n(u16 offset, u16 n) {
 void* SlottedPage::address(u16 offset) {
     return (void*)((char*)this->block.get_data() + offset);
 }
+
+
 
 //End Slotted Page Functions
 
