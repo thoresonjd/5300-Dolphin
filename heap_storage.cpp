@@ -4,9 +4,8 @@ bool test_heap_storage() {return true;}
 
 //Begin Slotted Page functions
 
-typedef u_int16_t u16;
+using u16 = u_int16_t;
 
-//Constructor given by the professor
 SlottedPage::SlottedPage(Dbt &block, BlockID block_id, bool is_new) : DbBlock(block, block_id, is_new) {
     if (is_new) {
         this->num_records = 0;
@@ -49,7 +48,7 @@ void SlottedPage::put_header(RecordID id, u16 size, u16 loc) {
 
 bool SlottedPage::has_room(u16 size){
     u16 available = this->end_free - (this->num_records+1)*4;
-    return size <= available;
+    return size + 4 <= available;
 }
 
 // Get 2-byte integer at given offset in block.
@@ -66,6 +65,7 @@ void SlottedPage::put_n(u16 offset, u16 n) {
 void* SlottedPage::address(u16 offset) {
     return (void*)((char*)this->block.get_data() + offset);
 }
+
 //End Slotted Page Functions
 
 //Begin Heap File Functions
