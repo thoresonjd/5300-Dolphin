@@ -39,6 +39,24 @@ Dbt* SlottedPage::get(RecordID record_id) {
     return new Dbt(this->address(loc), size);
 }
 
+void SlottedPage::put(RecordID record_id, const Dbt& data) {
+    u16 size, loc;
+    this->get_header(size, loc, record_id);
+    u16 new_size = sizeof(data);
+    if (new_size > size) {
+        u16 extra = new_size - size;
+        if (!this->has_room(extra))
+            throw DbBlockNoRoomError("Not enough room in block");
+        this->slide(loc + new_size, loc + size);
+        memcpy(this->address(loc - extra), data.get_data(), new_size);
+    } else {
+        memcpy(this->address(loc), data.get_data(), new_size));
+        this->slide(loc + new_size, loc + size);
+    }
+    this->get_header(size, loc, record_id);
+    this->put_header(record_id, new_size, loc);
+}
+
 void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
     size = get_n(4*id);
     loc = get_n(4*id+2);
@@ -57,6 +75,12 @@ void SlottedPage::put_header(RecordID id, u16 size, u16 loc) {
 bool SlottedPage::has_room(u16 size){
     u16 available = this->end_free - (this->num_records+1)*4;
     return size + 4 <= available;
+}
+
+void SlottedPage::slide(u16 start, u16 end) {
+    u16 shift = end - start;
+    if (!shift) return;
+    // TODO: implement
 }
 
 // Get 2-byte integer at given offset in block.
