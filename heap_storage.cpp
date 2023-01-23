@@ -153,6 +153,11 @@ void HeapFile::open(void) {
     this->db_open();
 }
 
+void HeapFile::close(void) {
+    this->db.close(0);
+    this->closed = true;
+}
+
 void HeapFile::db_open(uint flags) {
     if (!this->closed) return;
     this->db.set_message_stream(_DB_ENV->get_message_stream());
@@ -161,7 +166,7 @@ void HeapFile::db_open(uint flags) {
     this->dbfilename = this->name + ".db";
     int status = this->db.open(NULL, this->dbfilename.c_str(), NULL, DB_RECNO, flags, 0);
     if (status)
-        this->db.close(0);
+        this->close();
     else
         this->closed = false;
 }
