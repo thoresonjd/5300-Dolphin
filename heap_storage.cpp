@@ -15,6 +15,7 @@
 bool test_heap_storage() {return true;}
 
 using u16 = u_int16_t;
+using u32 = u_int32_t;
 
 // Begin Slotted Page functions
 
@@ -148,6 +149,14 @@ void* SlottedPage::address(u16 offset) {
 // End Slotted Page Functions
 
 // Begin Heap File Functions
+
+void HeapFile::create(void) {
+    u32 flags = DB_CREATE | DB_EXCL;
+    this->db_open(flags);
+    SlottedPage* block = this->get_new();
+    this->put(block);
+    delete block;
+}
 
 void HeapFile::open(void) {
     this->db_open();
