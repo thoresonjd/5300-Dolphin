@@ -155,7 +155,18 @@ void HeapFile::create(void) {
     this->db_open(flags);
     SlottedPage* block = this->get_new();
     this->put(block);
-    delete block;
+}
+
+void HeapFile::drop(void) {
+    this->close();
+    const char** pHome = nullptr;
+    int status = _DB_ENV->get_home(pHome);
+    if (status)
+        throw std::logic_error("could not remove DB file");
+    std::string dbfilepath = std::string(*pHome) + "/" + this->dbfilename;
+    status = std::remove(dbfilepath.c_str());
+    if (status)
+        throw std::logic_error("could not remove DB file");
 }
 
 void HeapFile::open(void) {
