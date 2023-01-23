@@ -77,7 +77,7 @@ void SlottedPage::del(RecordID record_id) {
 
 RecordIDs* SlottedPage::ids(void) {
     RecordIDs* record_ids = new RecordIDs();
-    for (u16 record_id = 0; record_id < this->num_records; record_id++) {
+    for (RecordID record_id = 0; record_id < this->num_records; record_id++) {
         u16 size, loc;
         this->get_header(size, loc, record_id);
         if (loc) 
@@ -219,6 +219,13 @@ void HeapFile::put(DbBlock* block) {
     Dbt* data = block->get_block();
     Dbt key(&block_id, sizeof(block_id));
     this->db.put(NULL, &key, data, 0);
+}
+
+BlockIDs* HeapFile::block_ids() {
+    BlockIDs* block_ids = new BlockIDs();
+    for (BlockID block_id = 1; block_id <= this->last; block_id++)
+        block_ids->push_back(block_id);
+    return block_ids;
 }
 
 // End Heap File Functions
