@@ -123,7 +123,7 @@ protected:
 };
 
 // convenience type alias
-typedef std::vector<BlockID> BlockIDs;  // FIXME: will need to turn this into an iterator at some point
+using BlockIDs = std::vector<BlockID>;  // FIXME: will need to turn this into an iterator at some point
 
 /**
  * @class DbFile - abstract base class which represents a disk-based collection of DbBlocks
@@ -233,12 +233,12 @@ public:
 };
 
 // More type aliases
-typedef std::string Identifier;
-typedef std::vector<Identifier> ColumnNames;
-typedef std::vector<ColumnAttribute> ColumnAttributes;
-typedef std::pair<BlockID, RecordID> Handle;
-typedef std::vector<Handle> Handles;  // FIXME: will need to turn this into an iterator at some point
-typedef std::map<Identifier, Value> ValueDict;
+using Identifier = std::string;
+using ColumnNames = std::vector<Identifier>;
+using ColumnAttributes = std::vector<ColumnAttribute>;
+using Handle = std::pair<BlockID, RecordID>;
+using Handles = std::vector<Handle>;  // FIXME: will need to turn this into an iterator at some point
+using ValueDict = std::map<Identifier, Value>;
 
 
 /**
