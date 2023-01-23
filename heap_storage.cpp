@@ -208,6 +208,12 @@ SlottedPage* HeapFile::get_new(void) {
     return page;
 }
 
+SlottedPage* HeapFile::get(BlockID block_id) {
+    Dbt key(&block_id, sizeof(block_id)), block;
+    this->db.get(NULL, &key, &block, 0);
+    return new SlottedPage(block, block_id);
+}
+
 void HeapFile::put(DbBlock* block) {
     BlockID block_id = block->get_block_id();
     Dbt* data = block->get_block();
