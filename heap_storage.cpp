@@ -10,6 +10,8 @@
 
 #include "heap_storage.h"
 #include <cstring>
+#include "db_cxx"
+
 bool test_heap_storage() {return true;}
 
 using u16 = u_int16_t;
@@ -143,11 +145,22 @@ void* SlottedPage::address(u16 offset) {
     return (void*)((char*)this->block.get_data() + offset);
 }
 
-
-
 // End Slotted Page Functions
 
 // Begin Heap File Functions
+
+void HeapFile::db_open(uint flags) {
+    if (!this->closed) return;
+    this->db.set_message_stream(_DB_ENV.get_message_stream());
+    this->db.set_error_stream(_DB_ENV.get_error_stream());
+    this->db.set_re_len(DbBlock::BLOCK_SZ);
+    this->dbfilename = this->name + '.db';
+    int status = this->db.open(NULL, this->dbfilename.c_str(), DB_RECNO, flags, 0);
+    if (status)
+        this->db.close();
+    else
+        this->closed = false;
+}
 
 // Allocate a new block for the database file.
 // Returns the new empty DbBlock that is managing the records in this block and its block id.
