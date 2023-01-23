@@ -1,10 +1,20 @@
+/**
+ * @file heap_storage.cpp - Implementation of the heap storage storage engine.
+ * SlottedPage: DbBlock
+ * HeapFile: DbFile
+ * HeapTable: DbRelation
+ *
+ * @authors Justin Thoreson & Mason Adsero
+ * @see "Seattle University, CPSC5300, Winter 2023"
+ */
+
 #include "heap_storage.h"
 #include <cstring>
 bool test_heap_storage() {return true;}
 
-//Begin Slotted Page functions
-
 using u16 = u_int16_t;
+
+// Begin Slotted Page functions
 
 SlottedPage::SlottedPage(Dbt &block, BlockID block_id, bool is_new) : DbBlock(block, block_id, is_new) {
     if (is_new) {
@@ -44,7 +54,7 @@ void SlottedPage::put(RecordID record_id, const Dbt& data) {
     if (new_size > size) {
         u16 extra = new_size - size;
         if (!this->has_room(extra))
-            throw DbBlockNoRoomError("Not enough room in block");
+            throw DbBlockNoRoomError("not enough room in block");
         this->slide(loc + new_size, loc + size);
         memcpy(this->address(loc - extra), data.get_data(), new_size);
     } else {
@@ -135,9 +145,9 @@ void* SlottedPage::address(u16 offset) {
 
 
 
-//End Slotted Page Functions
+// End Slotted Page Functions
 
-//Begin Heap File Functions
+// Begin Heap File Functions
 
 // Allocate a new block for the database file.
 // Returns the new empty DbBlock that is managing the records in this block and its block id.
@@ -156,9 +166,9 @@ SlottedPage* HeapFile::get_new(void) {
     return page;
 }
 
-//End Heap File Functions
+// End Heap File Functions
 
-//Begin heap table Functions
+// Begin heap table Functions
 
 // return the bits to go into the file
 // caller responsible for freeing the returned Dbt and its enclosed ret->get_data().
@@ -205,4 +215,4 @@ Handles* HeapTable::select(const ValueDict* where) {
     return handles;
 }
 
-//End Heap Table Functions
+// End Heap Table Functions
