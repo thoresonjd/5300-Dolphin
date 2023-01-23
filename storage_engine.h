@@ -18,7 +18,7 @@
 /**
  * Global variable to hold dbenv.
  */
-extern DbEnv *_DB_ENV;
+extern DbEnv* _DB_ENV;
 
 /*
  * Convenient aliases for types
@@ -54,7 +54,7 @@ public:
     /**
      * ctor/dtor (subclasses should handle the big-5)
      */
-    DbBlock(Dbt &block, BlockID block_id, bool is_new = false) : block(block), block_id(block_id) {}
+    DbBlock(Dbt& block, BlockID block_id, bool is_new = false) : block(block), block_id(block_id) {}
 
     virtual ~DbBlock() {}
 
@@ -69,14 +69,14 @@ public:
      * @returns     the new RecordID for the new record
      * @throws      DbBlockNoRoomError if insufficient room in the block
      */
-    virtual RecordID add(const Dbt *data) = 0;
+    virtual RecordID add(const Dbt* data) = 0;
 
     /**
      * Get a record from this block.
      * @param record_id  which record to fetch
      * @returns          the data stored for the given record
      */
-    virtual Dbt *get(RecordID record_id) = 0;
+    virtual Dbt* get(RecordID record_id) = 0;
 
     /**
      * Change the data stored for a record in this block.
@@ -85,7 +85,7 @@ public:
      * @throws           DbBlockNoRoomError if insufficient room in the block
      *                   (old record is retained)
      */
-    virtual void put(RecordID record_id, const Dbt &data) = 0;
+    virtual void put(RecordID record_id, const Dbt& data) = 0;
 
     /**
      * Delete a record from this block.
@@ -97,19 +97,19 @@ public:
      * Get all the record ids in this block (excluding deleted ones).
      * @returns  pointer to list of record ids (freed by caller)
      */
-    virtual RecordIDs *ids() = 0;
+    virtual RecordIDs* ids() = 0;
 
     /**
      * Access the whole block's memory as a BerkeleyDB Dbt pointer.
      * @returns  Dbt used by this block
      */
-    virtual Dbt *get_block() { return &block; }
+    virtual Dbt* get_block() { return &block; }
 
     /**
      * Access the whole block's memory within the BerkeleyDb Dbt.
      * @returns  Raw byte stream of this block
      */
-    virtual void *get_data() { return block.get_data(); }
+    virtual void* get_data() { return block.get_data(); }
 
     /**
      * Get this block's BlockID within its DbFile.
@@ -167,27 +167,27 @@ public:
      * Add a new block for this file.
      * @returns  the newly appended block
      */
-    virtual DbBlock *get_new() = 0;
+    virtual DbBlock* get_new() = 0;
 
     /**
      * Get a specific block in this file.
      * @param block_id  which block to get
      * @returns         pointer to the DbBlock (freed by caller)
      */
-    virtual DbBlock *get(BlockID block_id) = 0;
+    virtual DbBlock* get(BlockID block_id) = 0;
 
     /**
      * Write a block to this file (the block knows its BlockID)
      * @param block  block to write (overwrites existing block on disk)
      */
-    virtual void put(DbBlock *block) = 0;
+    virtual void put(DbBlock* block) = 0;
 
     /**
      * Get a list of all the valid BlockID's in the file
      * FIXME - not a good long-term approach, but we'll do this until we put in iterators
      * @returns  a pointer to vector of BlockIDs (freed by caller)
      */
-    virtual BlockIDs *block_ids() = 0;
+    virtual BlockIDs* block_ids() = 0;
 
 protected:
     std::string name;  // filename (or part of it)
@@ -311,7 +311,7 @@ public:
      * @param row  a dictionary keyed by column names
      * @returns    a handle to the new row
      */
-    virtual Handle insert(const ValueDict *row) = 0;
+    virtual Handle insert(const ValueDict* row) = 0;
 
     /**
      * Conceptually, execute: UPDATE INTO <table_name> SET <new_values> WHERE <handle>
@@ -320,7 +320,7 @@ public:
      * @param handle      the row to update
      * @param new_values  a dictionary keyed by column names for changing columns
      */
-    virtual void update(const Handle handle, const ValueDict *new_values) = 0;
+    virtual void update(const Handle handle, const ValueDict* new_values) = 0;
 
     /**
      * Conceptually, execute: DELETE FROM <table_name> WHERE <handle>
@@ -334,21 +334,21 @@ public:
      * Conceptually, execute: SELECT <handle> FROM <table_name> WHERE 1
      * @returns  a pointer to a list of handles for qualifying rows (caller frees)
      */
-    virtual Handles *select() = 0;
+    virtual Handles* select() = 0;
 
     /**
      * Conceptually, execute: SELECT <handle> FROM <table_name> WHERE <where>
      * @param where  where-clause predicates
      * @returns      a pointer to a list of handles for qualifying rows (freed by caller)
      */
-    virtual Handles *select(const ValueDict *where) = 0;
+    virtual Handles* select(const ValueDict* where) = 0;
 
     /**
      * Return a sequence of all values for handle (SELECT *).
      * @param handle  row to get values from
      * @returns       dictionary of values from row (keyed by all column names)
      */
-    virtual ValueDict *project(Handle handle) = 0;
+    virtual ValueDict* project(Handle handle) = 0;
 
     /**
      * Return a sequence of values for handle given by column_names
@@ -357,7 +357,7 @@ public:
      * @param column_names  list of column names to project
      * @returns             dictionary of values from row (keyed by column_names)
      */
-    virtual ValueDict *project(Handle handle, const ColumnNames *column_names) = 0;
+    virtual ValueDict* project(Handle handle, const ColumnNames* column_names) = 0;
 
 protected:
     Identifier table_name;

@@ -19,7 +19,7 @@ using u32 = u_int32_t;
 
 // Begin Slotted Page functions
 
-SlottedPage::SlottedPage(Dbt &block, BlockID block_id, bool is_new) : DbBlock(block, block_id, is_new) {
+SlottedPage::SlottedPage(Dbt& block, BlockID block_id, bool is_new) : DbBlock(block, block_id, is_new) {
     if (is_new) {
         this->num_records = 0;
         this->end_free = DbBlock::BLOCK_SZ - 1;
@@ -86,7 +86,7 @@ RecordIDs* SlottedPage::ids(void) {
     return record_ids;
 }
 
-void SlottedPage::get_header(u16 &size, u16 &loc, RecordID id){
+void SlottedPage::get_header(u16& size, u16& loc, RecordID id){
     size = get_n(4*id);
     loc = get_n(4*id+2);
 }
@@ -255,10 +255,10 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
             throw DbRelationError("Only know how to marshal INT and TEXT");
         }
     }
-    char *right_size_bytes = new char[offset];
+    char* right_size_bytes = new char[offset];
     memcpy(right_size_bytes, bytes, offset);
     delete[] bytes;
-    Dbt *data = new Dbt(right_size_bytes, offset);
+    Dbt* data = new Dbt(right_size_bytes, offset);
     return data;
 }
 

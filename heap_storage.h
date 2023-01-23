@@ -28,35 +28,35 @@
  */
 class SlottedPage : public DbBlock {
 public:
-    SlottedPage(Dbt &block, BlockID block_id, bool is_new = false);
+    SlottedPage(Dbt& block, BlockID block_id, bool is_new = false);
 
     // Big 5 - we only need the destructor, copy-ctor, move-ctor, and op= are unnecessary
     // but we delete them explicitly just to make sure we don't use them accidentally
     virtual ~SlottedPage() {}
 
-    SlottedPage(const SlottedPage &other) = delete;
+    SlottedPage(const SlottedPage& other) = delete;
 
-    SlottedPage(SlottedPage &&temp) = delete;
+    SlottedPage(SlottedPage&& temp) = delete;
 
-    SlottedPage &operator=(const SlottedPage &other) = delete;
+    SlottedPage& operator=(const SlottedPage& other) = delete;
 
-    SlottedPage &operator=(SlottedPage &temp) = delete;
+    SlottedPage& operator=(SlottedPage& temp) = delete;
 
-    virtual RecordID add(const Dbt *data);
+    virtual RecordID add(const Dbt* data);
 
-    virtual Dbt *get(RecordID record_id);
+    virtual Dbt* get(RecordID record_id);
 
-    virtual void put(RecordID record_id, const Dbt &data);
+    virtual void put(RecordID record_id, const Dbt& data);
 
     virtual void del(RecordID record_id);
 
-    virtual RecordIDs *ids(void);
+    virtual RecordIDs* ids(void);
 
 protected:
     u_int16_t num_records;
     u_int16_t end_free;
 
-    virtual void get_header(u_int16_t &size, u_int16_t &loc, RecordID id = 0);
+    virtual void get_header(u_int16_t& size, u_int16_t& loc, RecordID id = 0);
 
     virtual void put_header(RecordID id = 0, u_int16_t size = 0, u_int16_t loc = 0);
 
@@ -85,13 +85,13 @@ public:
 
     virtual ~HeapFile() {}
 
-    HeapFile(const HeapFile &other) = delete;
+    HeapFile(const HeapFile& other) = delete;
 
-    HeapFile(HeapFile &&temp) = delete;
+    HeapFile(HeapFile&& temp) = delete;
 
-    HeapFile &operator=(const HeapFile &other) = delete;
+    HeapFile& operator=(const HeapFile& other) = delete;
 
-    HeapFile &operator=(HeapFile &&temp) = delete;
+    HeapFile& operator=(HeapFile&& temp) = delete;
 
     virtual void create(void);
 
@@ -101,13 +101,13 @@ public:
 
     virtual void close(void);
 
-    virtual SlottedPage *get_new(void);
+    virtual SlottedPage* get_new(void);
 
-    virtual SlottedPage *get(BlockID block_id);
+    virtual SlottedPage* get(BlockID block_id);
 
-    virtual void put(DbBlock *block);
+    virtual void put(DbBlock* block);
 
-    virtual BlockIDs *block_ids();
+    virtual BlockIDs* block_ids();
 
     virtual u_int32_t get_last_block_id() { return last; }
 
@@ -130,13 +130,13 @@ public:
 
     virtual ~HeapTable() {}
 
-    HeapTable(const HeapTable &other) = delete;
+    HeapTable(const HeapTable& other) = delete;
 
-    HeapTable(HeapTable &&temp) = delete;
+    HeapTable(HeapTable&& temp) = delete;
 
-    HeapTable &operator=(const HeapTable &other) = delete;
+    HeapTable& operator=(const HeapTable& other) = delete;
 
-    HeapTable &operator=(HeapTable &&temp) = delete;
+    HeapTable& operator=(HeapTable&& temp) = delete;
 
     virtual void create();
 
@@ -148,30 +148,30 @@ public:
 
     virtual void close();
 
-    virtual Handle insert(const ValueDict *row);
+    virtual Handle insert(const ValueDict* row);
 
-    virtual void update(const Handle handle, const ValueDict *new_values);
+    virtual void update(const Handle handle, const ValueDict* new_values);
 
     virtual void del(const Handle handle);
 
-    virtual Handles *select();
+    virtual Handles* select();
 
-    virtual Handles *select(const ValueDict *where);
+    virtual Handles* select(const ValueDict* where);
 
-    virtual ValueDict *project(Handle handle);
+    virtual ValueDict* project(Handle handle);
 
-    virtual ValueDict *project(Handle handle, const ColumnNames *column_names);
+    virtual ValueDict* project(Handle handle, const ColumnNames* column_names);
 
 protected:
     HeapFile file;
 
-    virtual ValueDict *validate(const ValueDict *row);
+    virtual ValueDict* validate(const ValueDict* row);
 
-    virtual Handle append(const ValueDict *row);
+    virtual Handle append(const ValueDict* row);
 
-    virtual Dbt *marshal(const ValueDict *row);
+    virtual Dbt* marshal(const ValueDict* row);
 
-    virtual ValueDict *unmarshal(Dbt *data);
+    virtual ValueDict* unmarshal(Dbt* data);
 };
 
 bool test_heap_storage();
