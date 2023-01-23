@@ -188,6 +188,13 @@ SlottedPage* HeapFile::get_new(void) {
     return page;
 }
 
+void HeapFile::put(DbBlock* block) {
+    BlockID block_id = block->get_block_id();
+    Dbt* data = block->get_block();
+    Dbt key(&block_id, sizeof(block_id));
+    this->db.put(NULL, &key, data, 0);
+}
+
 // End Heap File Functions
 
 // Begin heap table Functions
