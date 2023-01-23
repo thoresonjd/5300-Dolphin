@@ -10,7 +10,7 @@
 
 #include "heap_storage.h"
 #include <cstring>
-#include "db_cxx"
+#include "db_cxx.h"
 
 bool test_heap_storage() {return true;}
 
@@ -149,15 +149,19 @@ void* SlottedPage::address(u16 offset) {
 
 // Begin Heap File Functions
 
+void HeapFile::open(void) {
+    this->db_open();
+}
+
 void HeapFile::db_open(uint flags) {
     if (!this->closed) return;
-    this->db.set_message_stream(_DB_ENV.get_message_stream());
-    this->db.set_error_stream(_DB_ENV.get_error_stream());
+    this->db.set_message_stream(_DB_ENV->get_message_stream());
+    this->db.set_error_stream(_DB_ENV->get_error_stream());
     this->db.set_re_len(DbBlock::BLOCK_SZ);
-    this->dbfilename = this->name + '.db';
-    int status = this->db.open(NULL, this->dbfilename.c_str(), DB_RECNO, flags, 0);
+    this->dbfilename = this->name + ".db";
+    int status = this->db.open(NULL, this->dbfilename.c_str(), NULL, DB_RECNO, flags, 0);
     if (status)
-        this->db.close();
+        this->db.close(0);
     else
         this->closed = false;
 }
