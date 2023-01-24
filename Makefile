@@ -11,7 +11,7 @@ OBJS = sql5300.o heap_storage.o
 
 # Rule for linking to create executable
 sql5300 : $(OBJS)
-	g++ -L$(LIB_DIR) -o $@ $< -ldb_cxx -lsqlparser
+	g++ -L$(LIB_DIR) -o $@ $^ -ldb_cxx -lsqlparser
 
 # Header file dependencies
 sql5300.o : heap_storage.h storage_engine.h
