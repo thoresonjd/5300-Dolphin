@@ -268,6 +268,21 @@ Handle HeapTable::insert(const ValueDict* row) {
     return handle;
 }
 
+Handles* HeapTable::select(const ValueDict* where) {
+    Handles* handles = new Handles();
+    BlockIDs* block_ids = file.block_ids();
+    for (auto const& block_id: *block_ids) {
+        SlottedPage* block = file.get(block_id);
+        RecordIDs* record_ids = block->ids();
+        for (auto const& record_id: *record_ids)
+            handles->push_back(Handle(block_id, record_id));
+        delete record_ids;
+        delete block;
+    }
+    delete block_ids;
+    return handles;
+}
+
 ValueDict* HeapTable::validate(const ValueDict* row) {
     ValueDict* full_row = new ValueDict();
     for (Identifier column_name : this->column_names) {
@@ -323,21 +338,6 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
     delete[] bytes;
     Dbt* data = new Dbt(right_size_bytes, offset);
     return data;
-}
-
-Handles* HeapTable::select(const ValueDict* where) {
-    Handles* handles = new Handles();
-    BlockIDs* block_ids = file.block_ids();
-    for (auto const& block_id: *block_ids) {
-        SlottedPage* block = file.get(block_id);
-        RecordIDs* record_ids = block->ids();
-        for (auto const& record_id: *record_ids)
-            handles->push_back(Handle(block_id, record_id));
-        delete record_ids;
-        delete block;
-    }
-    delete block_ids;
-    return handles;
 }
 
 // End Heap Table Functions
