@@ -260,6 +260,17 @@ void HeapTable::close() {
     this->file.close();
 }
 
+ValueDict* HeapTable::validate(const ValueDict* row) {
+    ValueDict* full_row = new ValueDict();
+    for (Identifier column_name : this->column_names) {
+        ValueDict::const_iterator column = row->find(column_name);
+        if (column == row->end())
+            throw DbRelationError("missing column name");
+        full_row->insert({column_name, column->second});
+    }
+    return full_row;
+}
+
 // return the bits to go into the file
 // caller responsible for freeing the returned Dbt and its enclosed ret->get_data().
 Dbt* HeapTable::marshal(const ValueDict* row) {
