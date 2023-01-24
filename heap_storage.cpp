@@ -372,6 +372,24 @@ Handles* HeapTable::select(const ValueDict* where) {
     return handles;
 }
 
+ValueDict* HeapTable::project(Handle handle, const ColumnNames* column_names) {
+    BlockID block_id = handle.first;
+    RecordID record_id = handle.second;
+    SlottedPage* block = this->file.get(block_id);
+    Dbt* record = block->get(record_id);
+    ValueDict* row = this->unmarshal(record);
+    delete block;
+    delete record;
+    if (column_names) {
+        ValueDict* temp_row = new ValueDict();
+        for (Identifier& column_name : this->column_names)
+            temp_row->insert({column_name, row->at(column_name)});
+        delete row;
+        row = temp_row;   
+    }
+    return row;
+}
+
 /**
  * Checks if a row is valid to the table
  * @param row The data tuple to validate
