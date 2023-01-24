@@ -232,6 +232,11 @@ BlockIDs* HeapFile::block_ids() {
 
 // Begin heap table Functions
 
+HeapTable::HeapTable(Identifier table_name, ColumnNames column_names, ColumnAttributes column_attributes)
+    : DbRelation(table_name, column_names, column_attributes), file(table_name)
+{}
+
+
 // return the bits to go into the file
 // caller responsible for freeing the returned Dbt and its enclosed ret->get_data().
 Dbt* HeapTable::marshal(const ValueDict* row) {
