@@ -236,6 +236,9 @@ HeapTable::HeapTable(Identifier table_name, ColumnNames column_names, ColumnAttr
     : DbRelation(table_name, column_names, column_attributes), file(table_name)
 {}
 
+void HeapTable::create() {
+    this->file.create();
+}
 
 // return the bits to go into the file
 // caller responsible for freeing the returned Dbt and its enclosed ret->get_data().
