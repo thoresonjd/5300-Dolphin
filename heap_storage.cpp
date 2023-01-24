@@ -296,14 +296,17 @@ BlockIDs* HeapFile::block_ids() {
 
 // Begin heap table Functions
 
+// Ctor for HeapTable
 HeapTable::HeapTable(Identifier table_name, ColumnNames column_names, ColumnAttributes column_attributes)
     : DbRelation(table_name, column_names, column_attributes), file(table_name)
 {}
 
+// Creates the HeapTable relation
 void HeapTable::create() {
     this->file.create();
 }
 
+// Creates the HeapTable relation if it doesn't already exist
 void HeapTable::create_if_not_exists() {
     try {
         this->open();
@@ -312,18 +315,26 @@ void HeapTable::create_if_not_exists() {
     }
 }
 
+// Drops the HeapTable relation
 void HeapTable::drop() {
     this->file.drop();
 }
 
+// Opens the HeapTable relation
 void HeapTable::open() {
     this->file.open();
 }
 
+// Closes the HeapTable relation
 void HeapTable::close() {
     this->file.close();
 }
 
+/**
+ * Inserts a data tuple into the table
+ * @param row The data tuple to insert
+ * @return A handle locating the block ID and record ID of the inserted tuple
+ */
 Handle HeapTable::insert(const ValueDict* row) {
     this->open();
     ValueDict* full_row = this->validate(row);
@@ -332,6 +343,11 @@ Handle HeapTable::insert(const ValueDict* row) {
     return handle;
 }
 
+/**
+ * Selects data tupels (rows) from the table matching given predicates
+ * @param where The where-clause predicates
+ * @return Handles locating the block IDs and record IDs of the matching rows
+ */
 Handles* HeapTable::select(const ValueDict* where) {
     Handles* handles = new Handles();
     BlockIDs* block_ids = file.block_ids();
@@ -347,6 +363,11 @@ Handles* HeapTable::select(const ValueDict* where) {
     return handles;
 }
 
+/**
+ * Checks if a row is valid to the table
+ * @param row The data tuple to validate
+ * @return The fully validated data tuple
+ */
 ValueDict* HeapTable::validate(const ValueDict* row) {
     ValueDict* full_row = new ValueDict();
     for (Identifier column_name : this->column_names) {
@@ -358,6 +379,11 @@ ValueDict* HeapTable::validate(const ValueDict* row) {
     return full_row;
 }
 
+/**
+ * Writes a data tuple to the database file
+ * @param row The data tuple to add
+ * @return A handle locating the block ID and record ID of the written tuple
+ */
 Handle HeapTable::append(const ValueDict* row) {
     Dbt* data = this->marshal(row);
     SlottedPage* block = this->file.get(this->file.get_last_block_id());
