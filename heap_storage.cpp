@@ -343,12 +343,20 @@ Handle HeapTable::insert(const ValueDict* row) {
     return handle;
 }
 
+Handles* HeapTable::select() {
+    return this->select(nullptr);
+}
+
 /**
  * Selects data tupels (rows) from the table matching given predicates
  * @param where The where-clause predicates
  * @return Handles locating the block IDs and record IDs of the matching rows
  */
 Handles* HeapTable::select(const ValueDict* where) {
+    // FIXME: ignoring where, limit, order, and group
+    if (where)
+        throw DbRelationError("cannot handle where clauses yet");
+    
     Handles* handles = new Handles();
     BlockIDs* block_ids = file.block_ids();
     for (auto const& block_id: *block_ids) {
@@ -403,7 +411,7 @@ Handle HeapTable::append(const ValueDict* row) {
 // return the bits to go into the file
 // caller responsible for freeing the returned Dbt and its enclosed ret->get_data().
 Dbt* HeapTable::marshal(const ValueDict* row) {
-    char *bytes = new char[DbBlock::BLOCK_SZ]; // more than we need (we insist that one row fits into DbBlock::BLOCK_SZ)
+    char* bytes = new char[DbBlock::BLOCK_SZ]; // more than we need (we insist that one row fits into DbBlock::BLOCK_SZ)
     uint offset = 0;
     uint col_num = 0;
     for (auto const& column_name: this->column_names) {
