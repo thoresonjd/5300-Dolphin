@@ -454,8 +454,7 @@ ValueDict* HeapTable::unmarshal(Dbt* data) {
         } else if (ca.get_data_type() == ColumnAttribute::DataType::TEXT) {
             u16 size = *(u16*)(data_bytes + offset);
             offset += sizeof(u16);
-            std::string value;
-            std::memcpy(&value, data_bytes + offset, size);
+            std::string value(data_bytes + offset, size);
             row->insert({column_name, Value(value)});
             offset += size;
         } else {
