@@ -343,6 +343,7 @@ Handle HeapTable::insert(const ValueDict* row) {
     return handle;
 }
 
+// Select without where-clause
 Handles* HeapTable::select() {
     return this->select(nullptr);
 }
@@ -378,7 +379,7 @@ Handles* HeapTable::select(const ValueDict* where) {
  */
 ValueDict* HeapTable::validate(const ValueDict* row) {
     ValueDict* full_row = new ValueDict();
-    for (Identifier column_name : this->column_names) {
+    for (Identifier& column_name : this->column_names) {
         ValueDict::const_iterator column = row->find(column_name);
         if (column == row->end())
             throw DbRelationError("missing column name");
@@ -436,6 +437,32 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
     delete[] bytes;
     Dbt* data = new Dbt(right_size_bytes, offset);
     return data;
+}
+
+ValueDict* HeapTable::unmarshal(Dbt* data) {
+    ValueDict* row = new ValueDict();
+    char* data_bytes = (char*)data->get_data();
+    uint offset = 0;
+    uint col_num = 0;
+    for (Identifier& column_name : this->column_names) {
+        ColumnAttribute ca = this->column_attributes[col_num++];
+        if (ca.get_data_type() == ColumnAttribute::DataType::INT) {
+            int32_t value;
+            std::memcpy(&value, data_bytes + offset, sizeof(int32_t));
+            row->insert({column_name, Value(value)});
+            offset += 4;
+        } else if (ca.get_data_type() == ColumnAttribute::DataType::TEXT) {
+            u16 size = *(u16*)(data_bytes + offset);
+            offset += sizeof(u16);
+            std::string value;
+            std::memcpy(&value, data_bytes + offset, size);
+            row->insert({column_name, Value(value)});
+            offset += size;
+        } else {
+            throw DbRelationError("Only know how to unmarshal INT and TEXT");
+        }
+    }
+    return row;
 }
 
 // End Heap Table Functions
