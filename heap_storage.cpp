@@ -260,6 +260,11 @@ void HeapTable::close() {
     this->file.close();
 }
 
+Handle HeapTable::insert(const ValueDict* row) {
+    this->open();
+    return this->append(this->validate(row));
+}
+
 ValueDict* HeapTable::validate(const ValueDict* row) {
     ValueDict* full_row = new ValueDict();
     for (Identifier column_name : this->column_names) {
