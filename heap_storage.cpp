@@ -94,9 +94,7 @@ void SlottedPage::del(RecordID record_id) {
     this->slide(loc, loc + size);
 }
 
-/**
- * Retrieves the IDs of all records in a slotted page
- */
+// Retrieves the IDs of all records in a slotted page
 RecordIDs* SlottedPage::ids(void) {
     RecordIDs* record_ids = new RecordIDs();
     for (RecordID record_id = 0; record_id < this->num_records; record_id++) {
@@ -198,6 +196,7 @@ void* SlottedPage::address(u16 offset) {
 
 // Begin Heap File Functions
 
+// Create physical database file
 void HeapFile::create(void) {
     u32 flags = DB_CREATE | DB_EXCL;
     this->db_open(flags);
@@ -205,6 +204,7 @@ void HeapFile::create(void) {
     this->put(block);
 }
 
+// Remove physical database file
 void HeapFile::drop(void) {
     this->close();
     const char** pHome = nullptr;
@@ -217,15 +217,21 @@ void HeapFile::drop(void) {
         throw std::logic_error("could not remove DB file");
 }
 
+// Open the database file
 void HeapFile::open(void) {
     this->db_open();
 }
 
+// Close the database file
 void HeapFile::close(void) {
     this->db.close(0);
     this->closed = true;
 }
 
+/**
+ * Open the Berkeley DB database file
+ * @param flags Flags to provide the Berkeley DB database file
+ */
 void HeapFile::db_open(uint flags) {
     if (!this->closed) return;
     this->db.set_message_stream(_DB_ENV->get_message_stream());
@@ -256,12 +262,21 @@ SlottedPage* HeapFile::get_new(void) {
     return page;
 }
 
+/**
+ * Retrieves a block from the database file
+ * @param block_id The id of the block to retrieve
+ * @return A slotted page, the data of the block requested
+ */
 SlottedPage* HeapFile::get(BlockID block_id) {
     Dbt key(&block_id, sizeof(block_id)), block;
     this->db.get(NULL, &key, &block, 0);
     return new SlottedPage(block, block_id);
 }
 
+/**
+ * Writes a block to the database file
+ * @param block The block to write to the database file
+ */
 void HeapFile::put(DbBlock* block) {
     BlockID block_id = block->get_block_id();
     Dbt* data = block->get_block();
@@ -269,6 +284,7 @@ void HeapFile::put(DbBlock* block) {
     this->db.put(NULL, &key, data, 0);
 }
 
+// Retrieves all block IDs of blocks within the database file
 BlockIDs* HeapFile::block_ids() {
     BlockIDs* block_ids = new BlockIDs();
     for (BlockID block_id = 1; block_id <= this->last; block_id++)
