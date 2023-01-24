@@ -19,6 +19,7 @@ using u32 = u_int32_t;
 
 // Begin Slotted Page functions
 
+// Ctor for slotted page
 SlottedPage::SlottedPage(Dbt& block, BlockID block_id, bool is_new) : DbBlock(block, block_id, is_new) {
     if (is_new) {
         this->num_records = 0;
@@ -29,7 +30,11 @@ SlottedPage::SlottedPage(Dbt& block, BlockID block_id, bool is_new) : DbBlock(bl
     }
 }
 
-// Add a new record to the block. Return its id.
+/**
+ * Adds a new record to a slotted page
+ * @param data The data of the record
+ * @return The record ID of the record
+ */
 RecordID SlottedPage::add(const Dbt* data) {
     if (!has_room(data->get_size()))
         throw DbBlockNoRoomError("not enough room for new record");
@@ -43,6 +48,11 @@ RecordID SlottedPage::add(const Dbt* data) {
     return id;
 }
 
+/**
+ * Retrieves a record from a slotted page
+ * @param record_id The ID of the record to retrieve
+ * @return The data of the record (location and size)
+ */
 Dbt* SlottedPage::get(RecordID record_id) {
     u16 size, loc;
     this->get_header(size, loc, record_id);
@@ -50,6 +60,11 @@ Dbt* SlottedPage::get(RecordID record_id) {
     return new Dbt(this->address(loc), size);
 }
 
+/**
+ * Puts a new record in the place of an existing record in a slotted page
+ * @param record_id The ID of the record to replace
+ * @param data The data to replace the existing record with
+ */
 void SlottedPage::put(RecordID record_id, const Dbt& data) {
     u16 size, loc;
     this->get_header(size, loc, record_id);
@@ -68,6 +83,10 @@ void SlottedPage::put(RecordID record_id, const Dbt& data) {
     this->put_header(record_id, new_size, loc);
 }
 
+/**
+ * Removes a record from a slotted page
+ * @param record_id The ID of the record to remove 
+ */
 void SlottedPage::del(RecordID record_id) {
     u16 size, loc;
     this->get_header(size, loc, record_id);
@@ -75,6 +94,9 @@ void SlottedPage::del(RecordID record_id) {
     this->slide(loc, loc + size);
 }
 
+/**
+ * Retrieves the IDs of all records in a slotted page
+ */
 RecordIDs* SlottedPage::ids(void) {
     RecordIDs* record_ids = new RecordIDs();
     for (RecordID record_id = 0; record_id < this->num_records; record_id++) {
@@ -86,12 +108,23 @@ RecordIDs* SlottedPage::ids(void) {
     return record_ids;
 }
 
+/**
+ * Retrieves the header (size and location) of the record within a slotted page
+ * @param size The size of the record
+ * @param loc The location (offset) of the record
+ * @param id The ID of the record
+ */
 void SlottedPage::get_header(u16& size, u16& loc, RecordID id){
     size = get_n(4*id);
     loc = get_n(4*id+2);
 }
 
-// Store the size and offset for given id. For id of zero, store the block header.
+/**
+ * Store the size and offset for given ID. For ID = 0, store the block header.
+ * @param id The ID of a record
+ * @param size The size of the record
+ * @param loc The location (offset) of the record
+ */ 
 void SlottedPage::put_header(RecordID id, u16 size, u16 loc) {
     if (id == 0) { // called the put_header() version and using the default params
         size = this->num_records;
@@ -101,11 +134,26 @@ void SlottedPage::put_header(RecordID id, u16 size, u16 loc) {
     put_n(4*id + 2, loc);
 }
 
+/**
+ * Checks the slotted page if there is enough free memory to add a new record
+ * @param size The size of the new record
+ * @return True if the record can fit into the slotted page, false otherwise
+ */
 bool SlottedPage::has_room(u16 size){
     u16 available = this->end_free - (this->num_records+1)*4;
     return size + 4 <= available;
 }
 
+/**
+ * If start < end, then remove data from offset start up to but not including
+ * offset end by sliding data that is to the left of start to the right. If
+ * start > end, then make room for extra data from end to start by sliding data
+ * that is to the left of start to the left. Also fix up any record headers
+ * whose data has slid. Assumes there is enough room if it is a left shift 
+ * (end < start).
+ * @param start The begining of section of memory in a slotted page
+ * @param end The end of section of memory in a slotted page
+ */
 void SlottedPage::slide(u16 start, u16 end) {
     u16 shift = end - start;
     if (!shift) return;
