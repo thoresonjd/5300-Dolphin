@@ -372,6 +372,21 @@ Handles* HeapTable::select(const ValueDict* where) {
     return handles;
 }
 
+/**
+ * Return a sequence of all values for handle (SELECT *).
+ * @param handle Location of row to get values from
+ * @returns Dictionary of values from row (keyed by all column names)
+ */
+ValueDict* HeapTable::project(Handle handle) {
+    return this->project(handle, nullptr);
+}
+
+/**
+ * Return a sequence of values for handle given by column_names
+ * @param handle Location of row to get values from
+ * @param column_names List of column names to project
+ * @returns Dictionary of values from row (keyed by column_names)
+ */
 ValueDict* HeapTable::project(Handle handle, const ColumnNames* column_names) {
     BlockID block_id = handle.first;
     RecordID record_id = handle.second;
@@ -457,6 +472,7 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
     return data;
 }
 
+// Converts data bytes into concrete types
 ValueDict* HeapTable::unmarshal(Dbt* data) {
     ValueDict* row = new ValueDict();
     char* data_bytes = (char*)data->get_data();
