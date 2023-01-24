@@ -262,7 +262,10 @@ void HeapTable::close() {
 
 Handle HeapTable::insert(const ValueDict* row) {
     this->open();
-    return this->append(this->validate(row));
+    ValueDict* full_row = this->validate(row);
+    Handle handle = this->append(full_row);
+    delete full_row;
+    return handle;
 }
 
 ValueDict* HeapTable::validate(const ValueDict* row) {
