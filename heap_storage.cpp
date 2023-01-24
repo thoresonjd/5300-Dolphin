@@ -240,6 +240,14 @@ void HeapTable::create() {
     this->file.create();
 }
 
+void HeapTable::create_if_not_exists() {
+    try {
+        this->open();
+    } catch (DbRelationError& e) {
+        this->create();
+    }
+}
+
 void HeapTable::drop() {
     this->file.drop();
 }
