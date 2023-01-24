@@ -240,6 +240,10 @@ void HeapTable::create() {
     this->file.create();
 }
 
+void HeapTable::open() {
+    this->file.open();
+}
+
 // return the bits to go into the file
 // caller responsible for freeing the returned Dbt and its enclosed ret->get_data().
 Dbt* HeapTable::marshal(const ValueDict* row) {
