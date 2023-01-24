@@ -240,6 +240,10 @@ void HeapTable::create() {
     this->file.create();
 }
 
+void HeapTable::drop() {
+    this->file.drop();
+}
+
 void HeapTable::open() {
     this->file.open();
 }
