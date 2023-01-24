@@ -481,15 +481,14 @@ ValueDict* HeapTable::unmarshal(Dbt* data) {
     for (Identifier& column_name : this->column_names) {
         ColumnAttribute ca = this->column_attributes[col_num++];
         if (ca.get_data_type() == ColumnAttribute::DataType::INT) {
-            int32_t value;
-            std::memcpy(&value, data_bytes + offset, sizeof(int32_t));
-            row->insert({column_name, Value(value)});
+            Value value = Value(*(u32*)(data_bytes + offset));
+            row->insert({column_name, value});
             offset += 4;
         } else if (ca.get_data_type() == ColumnAttribute::DataType::TEXT) {
             u16 size = *(u16*)(data_bytes + offset);
             offset += sizeof(u16);
-            std::string value(data_bytes + offset, size);
-            row->insert({column_name, Value(value)});
+            Value value(std::string(data_bytes + offset, size));
+            row->insert({column_name, value});
             offset += size;
         } else {
             throw DbRelationError("Only know how to unmarshal INT and TEXT");
