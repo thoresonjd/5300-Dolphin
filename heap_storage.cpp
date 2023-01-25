@@ -343,6 +343,18 @@ Handle HeapTable::insert(const ValueDict* row) {
 
 // TODO: implement
 void HeapTable::update(const Handle handle, const ValueDict* new_values) {
+    BlockID block_id = handle.first;
+    RecordID record_id = handle.second;
+    SlottedPage* block = this->file.get(block_id);
+    ValueDict* row = this->project(handle);
+    for(ValueDict::const_iterator it = new_values->begin(); it != new_values->end(); it++)
+    {
+        row->insert({it->first, it->second});
+    }
+    ValueDict* full_row = this->validate(row);
+    block->put(record_id, *this->marshal(full_row));
+    this->file.put(block);
+    delete block;
     return;
 }
 
