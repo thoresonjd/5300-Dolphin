@@ -17,7 +17,7 @@ const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
 const u_int32_t DB_FLAGS = DB_CREATE;
 const unsigned int BLOCK_SZ = 4096;
 const std::string DB_NAME = "sql5300.db";
-const std::string QUIT = "quit";
+const std::string TEST = "test", QUIT = "quit";
 
 // Global DbEnv
 DbEnv* _DB_ENV;
@@ -106,11 +106,9 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     const std::string ENV_DIR = argv[1];
-    // bool status = test_heap_storage();
-    // std:: cout << (status ? "Passed" : "Failed") << std::endl;
     // dbConfig(ENV_DIR);
     // std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
-    // runSQLShell();
+    runSQLShell();
     return EXIT_SUCCESS;
 }
 
@@ -162,7 +160,11 @@ void runSQLShell() {
 
 void handleSQL(std::string sql) {
     if (sql == QUIT) return;
-    hsql::SQLParserResult* const parsedSQL = hsql::SQLParser::parseSQLString(sql);
+    if (sql == TEST) {
+        std::cout << (test_heap_storage() ? "Passed" : "Failed") << std::endl;
+        return;
+    }
+    hsql::SQLParserResult *const parsedSQL = hsql::SQLParser::parseSQLString(sql);
     if (!parsedSQL->isValid())
         std::cout << "INVALID SQL: " << sql << std::endl;
     else
