@@ -346,8 +346,17 @@ void HeapTable::update(const Handle handle, const ValueDict* new_values) {
     return;
 }
 
-// TODO: implement
+/**
+ * Deletes a row from the table using the given handle for the row
+ * @param handle The handle for the row being deleted
+ */
 void HeapTable::del(const Handle handle) {
+    BlockID block_id = handle.first;
+    RecordID record_id = handle.second;
+    SlottedPage* block = this->file.get(block_id);
+    block->del(record_id);
+    this->file.put(block);
+    delete block;
     return;
 }
 
