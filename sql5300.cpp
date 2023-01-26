@@ -1,5 +1,5 @@
 /**
- * @file sql5300.cpp - SQL Shell
+ * @file sql5300.cpp - SQL Shell & Rudimentary Storage Engine
  * @authors Justin Thoreson & Mason Adsero
  * @see "Seattle University, CPSC5600, Winter 2023"
  */
@@ -12,16 +12,17 @@
 #include "SQLParser.h"
 #include "sqlhelper.h"
 #include "heap_storage.h"
-
-DbEnv* _DB_ENV; // Global DB Environment
+ 
+DbEnv* _DB_ENV; // Global DB environment
 const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
 const std::string TEST = "test", QUIT = "quit";
 
 /**
  * Establishes a database environment
  * @param envDir The database environment directory
+ * @return Pointer to the database environment
  */
-void initDbEnv(const std::string);
+DbEnv* initDbEnv(const std::string);
 
 /**
  * Runs the SQL shell loop and listens for queries
@@ -101,18 +102,24 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     const std::string ENV_DIR = argv[1];
-    initDbEnv(ENV_DIR);
+    _DB_ENV = initDbEnv(ENV_DIR);
+    std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
     runSQLShell();
-    delete _DB_ENV;
     return EXIT_SUCCESS;
 }
 
-void initDbEnv(const std::string envDir) {
-    std::cout << "(sql5300: running with database environment at " << envDir << std::endl;
-    _DB_ENV = new DbEnv(0U);
-    _DB_ENV->set_message_stream(&std::cout);
-    _DB_ENV->set_error_stream(&std::cerr);
-    _DB_ENV->open(envDir.c_str(), ENV_FLAGS, 0);
+DbEnv* initDbEnv(const std::string envDir) {
+    DbEnv* dbEnv = new DbEnv(0U);
+    dbEnv->set_message_stream(&std::cout);
+    dbEnv->set_error_stream(&std::cerr);
+    try {
+        dbEnv->open(envDir.c_str(), ENV_FLAGS, 0);
+    } catch (DbException& e) {
+        std::cerr << e.what() << std::endl;
+        dbEnv->close(0);
+        std::exit(EXIT_FAILURE);
+    }
+    return dbEnv;
 }
 
 void runSQLShell() {

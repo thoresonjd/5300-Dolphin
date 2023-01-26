@@ -42,7 +42,7 @@ RecordID SlottedPage::add(const Dbt* data) {
     u16 loc = this->end_free + 1;
     put_header();
     put_header(id, size, loc);
-    memcpy(this->address(loc), data->get_data(), size);
+    std::memcpy(this->address(loc), data->get_data(), size);
     return id;
 }
 
@@ -72,9 +72,9 @@ void SlottedPage::put(RecordID record_id, const Dbt& data) {
         if (!this->has_room(extra))
             throw DbBlockNoRoomError("not enough room in block");
         this->slide(loc + new_size, loc + size);
-        memcpy(this->address(loc - extra), data.get_data(), new_size);
+        std::memcpy(this->address(loc - extra), data.get_data(), new_size);
     } else {
-        memcpy(this->address(loc), data.get_data(), new_size);
+        std::memcpy(this->address(loc), data.get_data(), new_size);
         this->slide(loc + new_size, loc + size);
     }
     this->get_header(size, loc, record_id);
@@ -158,7 +158,7 @@ void SlottedPage::slide(u16 start, u16 end) {
     void* old_loc = this->address(this->end_free + 1);
     void* new_loc = this->address(this->end_free + shift + 1);
     u16 bytes = start - (this->end_free + 1);
-    memmove(new_loc, old_loc, bytes);
+    std::memmove(new_loc, old_loc, bytes);
 
     // Fixup headers
     RecordIDs* record_ids = this->ids();
@@ -196,7 +196,7 @@ void* SlottedPage::address(u16 offset) {
 
 // Create physical database file
 void HeapFile::create(void) {
-    u32 flags = DB_CREATE; // FIXME: figure out if DB_EXCL DB_TRUNCATE are necessary
+    u32 flags = DB_CREATE | DB_EXCL;
     this->db_open(flags);
     SlottedPage* block = this->get_new();
     this->put(block);
@@ -302,7 +302,11 @@ HeapTable::HeapTable(Identifier table_name, ColumnNames column_names, ColumnAttr
 
 // Creates the HeapTable relation
 void HeapTable::create() {
-    this->file.create();
+    try {
+        this->file.create();
+    } catch (DbRelationError& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 // Creates the HeapTable relation if it doesn't already exist
@@ -495,14 +499,14 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
             uint size = value.s.length();
             *(u16*) (bytes + offset) = size;
             offset += sizeof(u16);
-            memcpy(bytes+offset, value.s.c_str(), size); // assume ascii for now
+            std::memcpy(bytes+offset, value.s.c_str(), size); // assume ascii for now
             offset += size;
         } else {
             throw DbRelationError("Only know how to marshal INT and TEXT");
         }
     }
     char* right_size_bytes = new char[offset];
-    memcpy(right_size_bytes, bytes, offset);
+    std::memcpy(right_size_bytes, bytes, offset);
     delete[] bytes;
     Dbt* data = new Dbt(right_size_bytes, offset);
     return data;
@@ -540,23 +544,19 @@ bool test_heap_storage() {
 	ColumnNames column_names;
 	column_names.push_back("a");
 	column_names.push_back("b");
-    std::cout << "column names ok" << std::endl;
 	ColumnAttributes column_attributes;
 	ColumnAttribute ca(ColumnAttribute::INT);
 	column_attributes.push_back(ca);
 	ca.set_data_type(ColumnAttribute::TEXT);
 	column_attributes.push_back(ca);
-    std::cout << "column attributes ok" << std::endl;
     HeapTable table1("_test_create_drop_cpp", column_names, column_attributes);
-    std::cout << "table1 construction ok" << std::endl;
     table1.create();
     std::cout << "create ok" << std::endl;
     table1.drop();  // drop makes the object unusable because of BerkeleyDB restriction -- maybe want to fix this some day
     std::cout << "drop ok" << std::endl;
     HeapTable table("_test_data_cpp", column_names, column_attributes);
-    std::cout << "table construction ok" << std::endl;
     table.create_if_not_exists();
-    std::cout << "create_if_not_exsts ok" << std::endl;
+    std::cout << "create_if_not_exists ok" << std::endl;
 
     ValueDict row;
     row["a"] = Value(12);
