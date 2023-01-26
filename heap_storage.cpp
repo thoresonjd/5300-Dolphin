@@ -95,7 +95,7 @@ void SlottedPage::del(RecordID record_id) {
 // Retrieves the IDs of all records in a slotted page
 RecordIDs* SlottedPage::ids(void) {
     RecordIDs* record_ids = new RecordIDs();
-    for (RecordID record_id = 0; record_id < this->num_records; record_id++) {
+    for (RecordID record_id = 1; record_id <= this->num_records; record_id++) {
         u16 size, loc;
         this->get_header(size, loc, record_id);
         if (loc) 
@@ -278,8 +278,8 @@ SlottedPage* HeapFile::get(BlockID block_id) {
  */
 void HeapFile::put(DbBlock* block) {
     BlockID block_id = block->get_block_id();
-    Dbt* data = block->get_block();
     Dbt key(&block_id, sizeof(block_id));
+    Dbt* data = block->get_block();
     this->db.put(NULL, &key, data, 0);
 }
 
@@ -346,14 +346,18 @@ Handle HeapTable::insert(const ValueDict* row) {
     return handle;
 }
 
-// TODO: document
+/**
+ * Updates a record to a database
+ * @param handle The location (block ID, record ID) of the record
+ * @param new_values The new fields to replace the existing fields with
+ */
 void HeapTable::update(const Handle handle, const ValueDict* new_values) {
     BlockID block_id = handle.first;
     RecordID record_id = handle.second;
     SlottedPage* block = this->file.get(block_id);
     ValueDict* row = this->project(handle);
     for(ValueDict::const_iterator it = new_values->begin(); it != new_values->end(); it++)
-        row->insert({it->first, it->second});
+        (*row)[it->first] = it->second;
     ValueDict* full_row = this->validate(row);
     block->put(record_id, *this->marshal(full_row));
     this->file.put(block);
@@ -430,7 +434,7 @@ ValueDict* HeapTable::project(Handle handle, const ColumnNames* column_names) {
     if (column_names) {
         ValueDict* temp_row = new ValueDict();
         for (Identifier& column_name : this->column_names)
-            temp_row->insert({column_name, row->at(column_name)});
+            (*temp_row)[column_name] = (*row)[column_name];
         delete row;
         row = temp_row;   
     }
@@ -448,7 +452,7 @@ ValueDict* HeapTable::validate(const ValueDict* row) {
         ValueDict::const_iterator column = row->find(column_name);
         if (column == row->end())
             throw DbRelationError("missing column name");
-        full_row->insert({column_name, column->second});
+        (*full_row)[column_name] = column->second;
     }
     return full_row;
 }
@@ -507,20 +511,20 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
 // Converts data bytes into concrete types
 ValueDict* HeapTable::unmarshal(Dbt* data) {
     ValueDict* row = new ValueDict();
-    char* data_bytes = (char*)data->get_data();
+    char* bytes = (char*)data->get_data();
     uint offset = 0;
     uint col_num = 0;
     for (Identifier& column_name : this->column_names) {
         ColumnAttribute ca = this->column_attributes[col_num++];
         if (ca.get_data_type() == ColumnAttribute::DataType::INT) {
-            Value value = Value(*(u32*)(data_bytes + offset));
-            row->insert({column_name, value});
-            offset += 4;
+            Value value = Value(*(u32*)(bytes + offset));
+            (*row)[column_name] = value;
+            offset += sizeof(u32);
         } else if (ca.get_data_type() == ColumnAttribute::DataType::TEXT) {
-            u16 size = *(u16*)(data_bytes + offset);
+            u16 size = *(u16*)(bytes + offset);
             offset += sizeof(u16);
-            Value value(std::string(data_bytes + offset, size));
-            row->insert({column_name, value});
+            Value value(std::string(bytes + offset, size));
+            (*row)[column_name] = value;
             offset += size;
         } else {
             throw DbRelationError("Only know how to unmarshal INT and TEXT");
@@ -562,7 +566,7 @@ bool test_heap_storage() {
     std::cout << "insert ok" << std::endl;
     Handles* handles = table.select();
     std::cout << "select ok " << handles->size() << std::endl;
-    ValueDict *result = table.project((*handles)[0]);
+    ValueDict* result = table.project((*handles)[0]);
     std::cout << "project ok" << std::endl;
     Value value = (*result)["a"];
     if (value.n != 12)
