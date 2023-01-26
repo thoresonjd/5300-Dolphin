@@ -106,46 +106,48 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     const std::string ENV_DIR = argv[1];
-    // dbConfig(ENV_DIR);
+    dbConfig(ENV_DIR);
     // std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
     runSQLShell();
+    delete _DB_ENV;
     return EXIT_SUCCESS;
 }
 
 void dbConfig(const std::string envDir)
 {
     // Establish database environment
-    DbEnv env(0U);
-    env.set_message_stream(&std::cout);
-    env.set_error_stream(&std::cerr);
-    try {
-        env.open(envDir.c_str(), ENV_FLAGS, 0);
-    } catch (DbException& dbEx) {
-        std::cerr << "(sql5300: " << dbEx.what() << ")\n";
-        exit(EXIT_FAILURE);
-    }
+    _DB_ENV = new DbEnv(0U);
+    _DB_ENV->set_message_stream(&std::cout);
+    _DB_ENV->set_error_stream(&std::cerr);
+    _DB_ENV->open(envDir.c_str(), ENV_FLAGS, 0);
+    // try {
+    //     env.open(envDir.c_str(), ENV_FLAGS, 0);
+    // } catch (DbException& dbEx) {
+    //     std::cerr << "(sql5300: " << dbEx.what() << ")\n";
+    //     exit(EXIT_FAILURE);
+    // }
 
-    // Establish database
-    Db db(&env, 0);
-    db.set_message_stream(env.get_message_stream());
-    db.set_error_stream(env.get_error_stream());
-    db.set_re_len(BLOCK_SZ);
-    db.open(NULL, DB_NAME.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
+    // // Establish database
+    // Db db(&env, 0);
+    // db.set_message_stream(env.get_message_stream());
+    // db.set_error_stream(env.get_error_stream());
+    // db.set_re_len(BLOCK_SZ);
+    // db.open(NULL, DB_NAME.c_str(), NULL, DB_RECNO, DB_FLAGS, 0);
 
-    // Write block to db
-    char block[BLOCK_SZ];
-    Dbt data(block, sizeof(block));
-    int block_number;
-    Dbt key(&block_number, sizeof(block_number));
-    block_number = 1;
-    strcpy(block, "Hello, DB!");
-    db.put(NULL, &key, &data, 0);
+    // // Write block to db
+    // char block[BLOCK_SZ];
+    // Dbt data(block, sizeof(block));
+    // int block_number;
+    // Dbt key(&block_number, sizeof(block_number));
+    // block_number = 1;
+    // strcpy(block, "Hello, DB!");
+    // db.put(NULL, &key, &data, 0);
 
-    // Read block from db
-    Dbt rData;
-    db.get(NULL, &key, &rData, 0);
-    std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
-    std::cout << " (expect 'Hello, DB!')" << std::endl;
+    // // Read block from db
+    // Dbt rData;
+    // db.get(NULL, &key, &rData, 0);
+    // std::cout << "Read (block #" << block_number << "): '" << (char *)rData.get_data() << "'";
+    // std::cout << " (expect 'Hello, DB!')" << std::endl;
 }
 
 void runSQLShell() {
@@ -165,10 +167,10 @@ void handleSQL(std::string sql) {
         return;
     }
     hsql::SQLParserResult *const parsedSQL = hsql::SQLParser::parseSQLString(sql);
-    if (!parsedSQL->isValid())
-        std::cout << "INVALID SQL: " << sql << std::endl;
-    else
+    if (parsedSQL->isValid())
         handleStatements(parsedSQL);
+    else
+        std::cout << "INVALID SQL: " << sql << std::endl;
 }
 
 void handleStatements(hsql::SQLParserResult* const parsedSQL) {

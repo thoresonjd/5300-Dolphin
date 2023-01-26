@@ -196,10 +196,11 @@ void* SlottedPage::address(u16 offset) {
 
 // Create physical database file
 void HeapFile::create(void) {
-    u32 flags = DB_CREATE | DB_EXCL;
+    u32 flags = DB_CREATE; // FIXME: figure out if DB_EXCL DB_TRUNCATE are necessary
     this->db_open(flags);
     SlottedPage* block = this->get_new();
     this->put(block);
+    delete block;
 }
 
 // Remove physical database file
@@ -539,6 +540,7 @@ bool test_heap_storage() {
 	column_attributes.push_back(ca);
     std::cout << "column attributes ok" << std::endl;
     HeapTable table1("_test_create_drop_cpp", column_names, column_attributes);
+    std::cout << "table1 construction ok" << std::endl;
     table1.create();
     std::cout << "create ok" << std::endl;
     table1.drop();  // drop makes the object unusable because of BerkeleyDB restriction -- maybe want to fix this some day
