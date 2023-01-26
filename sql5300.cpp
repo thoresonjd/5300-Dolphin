@@ -13,20 +13,15 @@
 #include "sqlhelper.h"
 #include "heap_storage.h"
 
+DbEnv* _DB_ENV; // Global DB Environment
 const u_int32_t ENV_FLAGS = DB_CREATE | DB_INIT_MPOOL;
-const u_int32_t DB_FLAGS = DB_CREATE;
-const unsigned int BLOCK_SZ = 4096;
-const std::string DB_NAME = "sql5300.db";
 const std::string TEST = "test", QUIT = "quit";
 
-// Global DbEnv
-DbEnv* _DB_ENV;
-
 /**
- * Tests the establishment of, writing to, and reading from a database
+ * Establishes a database environment
  * @param envDir The database environment directory
  */
-void dbConfig(const std::string);
+void initDbEnv(const std::string);
 
 /**
  * Runs the SQL shell loop and listens for queries
@@ -106,14 +101,14 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     const std::string ENV_DIR = argv[1];
-    dbConfig(ENV_DIR);
-    // std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
+    initDbEnv(ENV_DIR);
     runSQLShell();
     delete _DB_ENV;
     return EXIT_SUCCESS;
 }
 
-void dbConfig(const std::string envDir) {
+void initDbEnv(const std::string envDir) {
+    std::cout << "(sql5300: running with database environment at " << envDir << std::endl;
     _DB_ENV = new DbEnv(0U);
     _DB_ENV->set_message_stream(&std::cout);
     _DB_ENV->set_error_stream(&std::cerr);
@@ -132,13 +127,11 @@ void runSQLShell() {
 
 void handleSQL(std::string sql) {
     if (sql == QUIT) return;
-    if (sql == TEST) {
-        std::cout << (test_heap_storage() ? "Passed" : "Failed") << std::endl;
-        return;
-    }
     hsql::SQLParserResult *const parsedSQL = hsql::SQLParser::parseSQLString(sql);
     if (parsedSQL->isValid())
         handleStatements(parsedSQL);
+    else if (sql == TEST)
+        std::cout << (test_heap_storage() ? "Passed" : "Failed") << std::endl;
     else
         std::cout << "INVALID SQL: " << sql << std::endl;
 }
