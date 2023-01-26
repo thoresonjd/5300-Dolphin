@@ -206,7 +206,7 @@ void HeapFile::create(void) {
 // Remove physical database file
 void HeapFile::drop(void) {
     this->close();
-    const char** pHome = nullptr;
+    const char** pHome = new const char*[1024];
     int status = _DB_ENV->get_home(pHome);
     if (status)
         throw std::logic_error("could not remove DB file");
@@ -316,7 +316,11 @@ void HeapTable::create_if_not_exists() {
 
 // Drops the HeapTable relation
 void HeapTable::drop() {
-    this->file.drop();
+    try {
+        this->file.drop();
+    } catch (std::logic_error& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 // Opens the HeapTable relation
