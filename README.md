@@ -36,4 +36,4 @@ To execute, run `$ ./sql5300 [ENV_DIR]` where `ENV_DIR` is the directory where t
 
 SQL statements can be provided to the SQL shell when running. To terminate the SQL shell, enter `SQL> quit`.
 
-To test the functionality of the rudimentary storage engine, enter `SQL> test`. This will run the test function, `test_heap_storage`, defined in [heap_storage.cpp](./heap_storage.cpp).
+To test the functionality of the rudimentary storage engine, enter `SQL> test`. This will run the test function, `test_heap_storage`, defined in [`heap_storage.cpp`](./heap_storage.cpp).
