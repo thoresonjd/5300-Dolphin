@@ -308,9 +308,9 @@ void HeapTable::create() {
 // Creates the HeapTable relation if it doesn't already exist
 void HeapTable::create_if_not_exists() {
     try {
-        this->open();
-    } catch (DbRelationError& e) {
         this->create();
+    } catch (DbRelationError& e) {
+        this->open();
     }
 }
 
@@ -549,8 +549,8 @@ bool test_heap_storage() {
     std::cout << "create ok" << std::endl;
     table1.drop();  // drop makes the object unusable because of BerkeleyDB restriction -- maybe want to fix this some day
     std::cout << "drop ok" << std::endl;
-
     HeapTable table("_test_data_cpp", column_names, column_attributes);
+    std::cout << "table construction ok" << std::endl;
     table.create_if_not_exists();
     std::cout << "create_if_not_exsts ok" << std::endl;
 
