@@ -105,6 +105,7 @@ int main(int argc, char** argv) {
     _DB_ENV = initDbEnv(ENV_DIR);
     std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
     runSQLShell();
+    _DB_ENV->close(0);
     delete _DB_ENV;
     return EXIT_SUCCESS;
 }
