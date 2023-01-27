@@ -533,7 +533,6 @@ ValueDict* HeapTable::unmarshal(Dbt* data) {
             throw DbRelationError("Only know how to unmarshal INT and TEXT");
         }
     }
-    delete[] bytes;
     return row;
 }
 
