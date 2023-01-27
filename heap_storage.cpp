@@ -207,12 +207,10 @@ void HeapFile::create(void) {
 void HeapFile::drop(void) {
     this->close();
     const char** pHome = new const char*[1024];
-    int status = _DB_ENV->get_home(pHome);
-    if (status)
-        throw std::logic_error("could not remove DB file");
+    _DB_ENV->get_home(pHome);
     std::string dbfilepath = std::string(*pHome) + "/" + this->dbfilename;
-    status = std::remove(dbfilepath.c_str());
-    if (status)
+    delete[] pHome;
+    if (std::remove(dbfilepath.c_str()))
         throw std::logic_error("could not remove DB file");
 }
 
@@ -507,8 +505,9 @@ Dbt* HeapTable::marshal(const ValueDict* row) {
     }
     char* right_size_bytes = new char[offset];
     std::memcpy(right_size_bytes, bytes, offset);
+    Dbt *data = new Dbt(right_size_bytes, offset);
     delete[] bytes;
-    Dbt* data = new Dbt(right_size_bytes, offset);
+    delete[] right_size_bytes;
     return data;
 }
 
@@ -534,6 +533,7 @@ ValueDict* HeapTable::unmarshal(Dbt* data) {
             throw DbRelationError("Only know how to unmarshal INT and TEXT");
         }
     }
+    delete[] bytes;
     return row;
 }
 
@@ -568,13 +568,14 @@ bool test_heap_storage() {
     std::cout << "select ok " << handles->size() << std::endl;
     ValueDict* result = table.project((*handles)[0]);
     std::cout << "project ok" << std::endl;
-    Value value = (*result)["a"];
-    if (value.n != 12)
-    	return false;
-    value = (*result)["b"];
-    if (value.s != "Hello!")
+    Value value_a = (*result)["a"], value_b = (*result)["b"];
+    if (value_a.n != 12)
+        return false;
+    if (value_b.s != "Hello!")
 		return false;
     table.drop();
+    delete result;
+    delete handles;
 
     return true;
 }

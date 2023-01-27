@@ -105,6 +105,7 @@ int main(int argc, char** argv) {
     _DB_ENV = initDbEnv(ENV_DIR);
     std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
     runSQLShell();
+    delete _DB_ENV;
     return EXIT_SUCCESS;
 }
 
@@ -134,13 +135,14 @@ void runSQLShell() {
 
 void handleSQL(std::string sql) {
     if (sql == QUIT) return;
-    hsql::SQLParserResult *const parsedSQL = hsql::SQLParser::parseSQLString(sql);
+    hsql::SQLParserResult* const parsedSQL = hsql::SQLParser::parseSQLString(sql);
     if (parsedSQL->isValid())
         handleStatements(parsedSQL);
     else if (sql == TEST)
         std::cout << (test_heap_storage() ? "Passed" : "Failed") << std::endl;
     else
         std::cout << "INVALID SQL: " << sql << std::endl;
+    delete parsedSQL;
 }
 
 void handleStatements(hsql::SQLParserResult* const parsedSQL) {
