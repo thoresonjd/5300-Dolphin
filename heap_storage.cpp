@@ -286,7 +286,6 @@ void HeapTable::del(const Handle handle) {
     block->del(record_id);
     this->file.put(block);
     delete block;
-    return;
 }
 
 Handles* HeapTable::select() {
@@ -417,6 +416,7 @@ ValueDict* HeapTable::unmarshal(Dbt* data) {
 // End Heap Table Functions
 
 bool test_heap_storage() {
+    // Set table column names and attributes
 	ColumnNames column_names;
 	column_names.push_back("a");
 	column_names.push_back("b");
@@ -425,33 +425,43 @@ bool test_heap_storage() {
 	column_attributes.push_back(ca);
 	ca.set_data_type(ColumnAttribute::TEXT);
 	column_attributes.push_back(ca);
+
+    // Create and drop table
     HeapTable table1("_test_create_drop_cpp", column_names, column_attributes);
     table1.create();
     std::cout << "create ok" << std::endl;
     table1.drop();  // drop makes the object unusable because of BerkeleyDB restriction -- maybe want to fix this some day
     std::cout << "drop ok" << std::endl;
+
+    // Create table if not exists
     HeapTable table("_test_data_cpp", column_names, column_attributes);
     table.create_if_not_exists();
     std::cout << "create_if_not_exists ok" << std::endl;
 
+    // Create row and insert into table
     ValueDict row;
     row["a"] = Value(12);
     row["b"] = Value("Hello!");
     std::cout << "try insert" << std::endl;
     table.insert(&row);
     std::cout << "insert ok" << std::endl;
+
+    // Select and project rows from table
     Handles* handles = table.select();
     std::cout << "select ok " << handles->size() << std::endl;
     ValueDict* result = table.project((*handles)[0]);
-    std::cout << "project ok" << std::endl;
-    table.drop();
     Value value_a = (*result)["a"], value_b = (*result)["b"];
+    std::cout << "project ok" << std::endl;
+    
+    // Clean up
+    table.drop();
+    delete result;
+    delete handles;
+
+    // Test projection results
     if (value_a.n != 12)
         return false;
     if (value_b.s != "Hello!")
 		return false;
-    delete result;
-    delete handles;
-
     return true;
 }
