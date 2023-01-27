@@ -356,6 +356,7 @@ Handle HeapTable::append(const ValueDict* row) {
         record_id = block->add(data);
     }
     this->file.put(block);
+    delete (char*)data->get_data();
     delete data;
     delete block;
     return Handle(this->file.get_last_block_id(), record_id);
