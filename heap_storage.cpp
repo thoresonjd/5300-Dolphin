@@ -211,8 +211,7 @@ void HeapFile::db_open(uint flags) {
     this->db.set_error_stream(_DB_ENV->get_error_stream());
     this->db.set_re_len(DbBlock::BLOCK_SZ);
     this->dbfilename = this->name + ".db";
-    int status = this->db.open(NULL, this->dbfilename.c_str(), NULL, DB_RECNO, flags, 0);
-    if (status)
+    if (this->db.open(NULL, this->dbfilename.c_str(), NULL, DB_RECNO, flags, 0))
         this->close();
     else
         this->closed = false;
@@ -267,6 +266,9 @@ Handle HeapTable::insert(const ValueDict* row) {
 }
 
 void HeapTable::update(const Handle handle, const ValueDict* new_values) {
+    // FIXME
+    throw DbRelationError("could not update record");
+    
     BlockID block_id = handle.first;
     RecordID record_id = handle.second;
     SlottedPage* block = this->file.get(block_id);
@@ -280,6 +282,9 @@ void HeapTable::update(const Handle handle, const ValueDict* new_values) {
 }
 
 void HeapTable::del(const Handle handle) {
+    // FIXME
+    throw DbRelationError("could not delete record");
+
     BlockID block_id = handle.first;
     RecordID record_id = handle.second;
     SlottedPage* block = this->file.get(block_id);
@@ -442,7 +447,6 @@ bool test_heap_storage() {
     ValueDict row;
     row["a"] = Value(12);
     row["b"] = Value("Hello!");
-    std::cout << "try insert" << std::endl;
     table.insert(&row);
     std::cout << "insert ok" << std::endl;
 
@@ -452,6 +456,21 @@ bool test_heap_storage() {
     ValueDict* result = table.project((*handles)[0]);
     Value value_a = (*result)["a"], value_b = (*result)["b"];
     std::cout << "project ok" << std::endl;
+    
+    // Test update (expect exception thrown)
+    try {
+        table.update((*handles)[0], nullptr);
+    } catch (DbRelationError &e) {
+        std::cout << "update ok" << std::endl;
+    }
+
+    // Test delete (expect exception thrown)
+    try {
+        table.del((*handles)[0]);
+    } catch (DbRelationError &e) {
+        std::cout << "delete ok" << std::endl;
+    }
+
     table.drop();
     
     // Clean up
@@ -463,5 +482,6 @@ bool test_heap_storage() {
         return false;
     if (value_b.s != "Hello!")
 		return false;
+
     return true;
 }
