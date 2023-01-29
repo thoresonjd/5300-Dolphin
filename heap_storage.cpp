@@ -450,27 +450,26 @@ bool test_heap_storage() {
     table.insert(&row);
     std::cout << "insert ok" << std::endl;
 
-    // Select and project rows from table, drop table
+    // Select and project rows from table
     Handles* handles = table.select();
     std::cout << "select ok " << handles->size() << std::endl;
     ValueDict* result = table.project((*handles)[0]);
     Value value_a = (*result)["a"], value_b = (*result)["b"];
     std::cout << "project ok" << std::endl;
     
-    // Test update (expect exception thrown)
+    // Update and delete (expect exceptions thrown)
     try {
         table.update((*handles)[0], nullptr);
     } catch (DbRelationError &e) {
         std::cout << "update ok" << std::endl;
     }
-
-    // Test delete (expect exception thrown)
     try {
         table.del((*handles)[0]);
     } catch (DbRelationError &e) {
         std::cout << "delete ok" << std::endl;
     }
 
+    // Drop table
     table.drop();
     
     // Clean up
