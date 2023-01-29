@@ -22,7 +22,7 @@ const std::string TEST = "test", QUIT = "quit";
  * @param envDir The database environment directory
  * @return Pointer to the database environment
  */
-DbEnv* initDbEnv(const std::string);
+DbEnv* initDbEnv(std::string);
 
 /**
  * Runs the SQL shell loop and listens for queries
@@ -101,16 +101,16 @@ int main(int argc, char** argv) {
         std::cout << "USAGE: " << argv[0] << " [db_environment]\n";
         return EXIT_FAILURE;
     }
-    const std::string ENV_DIR = argv[1];
-    _DB_ENV = initDbEnv(ENV_DIR);
-    std::cout << "(sql5300: running with database environment at " << ENV_DIR << std::endl;
+    std::string envDir = argv[1];
+    _DB_ENV = initDbEnv(envDir);
+    std::cout << "(sql5300: running with database environment at " << envDir << std::endl;
     runSQLShell();
     _DB_ENV->close(0);
     delete _DB_ENV;
     return EXIT_SUCCESS;
 }
 
-DbEnv* initDbEnv(const std::string envDir) {
+DbEnv* initDbEnv(std::string envDir) {
     DbEnv* dbEnv = new DbEnv(0U);
     dbEnv->set_message_stream(&std::cout);
     dbEnv->set_error_stream(&std::cerr);
@@ -149,7 +149,7 @@ void handleSQL(std::string sql) {
 void handleStatements(hsql::SQLParserResult* const parsedSQL) {
     std::size_t nStatements = parsedSQL->size();
     for (std::size_t i = 0; i < nStatements; i++) {
-        const hsql::SQLStatement *const statement = parsedSQL->getStatement(i);
+        const hsql::SQLStatement* const statement = parsedSQL->getStatement(i);
         execute(statement);
     }
 }
@@ -161,9 +161,9 @@ void execute(const hsql::SQLStatement* const statement) {
 std::string unparse(const hsql::SQLStatement* const statement) {
     switch (statement->type()) {
         case hsql::StatementType::kStmtSelect:
-            return unparse(dynamic_cast<const hsql::SelectStatement*>(statement));
+            return unparse(dynamic_cast<const hsql::SelectStatement* const>(statement));
         case hsql::StatementType::kStmtCreate:
-            return unparse(dynamic_cast<const hsql::CreateStatement*>(statement));
+            return unparse(dynamic_cast<const hsql::CreateStatement* const>(statement));
         default:
             return "...";
     }
@@ -190,7 +190,7 @@ std::string unparse(const hsql::CreateStatement* const statement) {
     unparsed.append(statement->tableName).append(" (");
     std::size_t nCols = statement->columns->size();
     for (std::size_t i = 0; i < nCols; i++) {
-        hsql::ColumnDefinition *col = statement->columns->at(i);
+        hsql::ColumnDefinition* const col = statement->columns->at(i);
         unparsed.append(toString(col));
         unparsed.append(i + 1 < nCols ? ", " : ") ");
     }

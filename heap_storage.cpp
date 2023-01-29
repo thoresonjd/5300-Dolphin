@@ -355,7 +355,7 @@ Handle HeapTable::append(const ValueDict* row) {
         record_id = block->add(data);
     }
     this->file.put(block);
-    delete (char*)data->get_data();
+    delete[] (char*)data->get_data();
     delete data;
     delete block;
     return Handle(this->file.get_last_block_id(), record_id);
@@ -446,15 +446,15 @@ bool test_heap_storage() {
     table.insert(&row);
     std::cout << "insert ok" << std::endl;
 
-    // Select and project rows from table
+    // Select and project rows from table, drop table
     Handles* handles = table.select();
     std::cout << "select ok " << handles->size() << std::endl;
     ValueDict* result = table.project((*handles)[0]);
     Value value_a = (*result)["a"], value_b = (*result)["b"];
     std::cout << "project ok" << std::endl;
+    table.drop();
     
     // Clean up
-    table.drop();
     delete result;
     delete handles;
 
