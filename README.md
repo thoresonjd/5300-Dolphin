@@ -29,5 +29,8 @@ SQL statements can be provided to the SQL shell when running. To terminate the S
 ### **Testing**
 To test the functionality of the rudimentary storage engine, enter `SQL> test`. This will run the test function, `test_heap_storage`, defined in [`heap_storage.cpp`](./heap_storage.cpp).
 
-### **Error & Memory Leak Check**
+### **Error & Memory Leak Checking**
 Checking for memory leaks can be done with [Valgrind](https://valgrind.org/). A target within the Makefile has been configured with relevant flags to execute Valgrind via running the command `$ make check`.
+
+### **Handoff**
+Our handoff video is located on YouTube [here](https://www.youtube.com/watch?v=bdTMnPUru6I).
