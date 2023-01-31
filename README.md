@@ -7,7 +7,7 @@ DB Relation Manager project for CPSC5300 at Seattle U, Winter 2023, Project Dolp
 Justin Thoreson & Mason Adsero
 
 ### **Milestone 1: Skeleton**
-Initial construction of a SQL shell and basic configuration of a database via [Berkeley DB](https://www.oracle.com/database/technologies/related/berkeleydb.html). SQL statements are retrieved from the SQL shell, parsed into an abstract syntax tree via [the Hyrise C++ SQL Parser](https://github.com/hyrise/sql-parser), and printed out to the terminal.
+Initial construction of a SQL shell and basic configuration of a database via [Berkeley DB](https://www.oracle.com/database/technologies/related/berkeleydb.html). SQL statements are retrieved from the SQL shell, parsed into an abstract syntax tree via the [Hyrise C++ SQL Parser](https://github.com/hyrise/sql-parser), and printed out to the terminal.
 
 Supports CREATE TABLE and SELECT statements. SELECT statements can include FROM clauses, JOIN clauses, WHERE clauses, and table aliases.
 
@@ -31,6 +31,8 @@ To test the functionality of the rudimentary storage engine, enter `SQL> test`. 
 
 ### **Error & Memory Leak Checking**
 Checking for memory leaks can be done with [Valgrind](https://valgrind.org/). A target within the Makefile has been configured with relevant flags to execute Valgrind via running the command `$ make check`.
+
+If any issues arise, first try clearing out all the files within the database environment directory.
 
 ### **Handoff**
 Our handoff video is located on YouTube [here](https://www.youtube.com/watch?v=bdTMnPUru6I).
